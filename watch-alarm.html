@@ -40,6 +40,8 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .day{font-family:var(--f-display);font-weight:700;font-size:1rem;border:1.5px solid transparent;background:var(--card);
   color:var(--fg);border-radius:12px;padding:12px 0;cursor:pointer;position:relative}
 .day[aria-selected="true"]{border-color:var(--fg);background:var(--panel)}
+.day.sun{color:var(--danger)}
+.day.sat{color:var(--on)}
 .day .n{position:absolute;top:4px;right:6px;font-family:var(--f-num);font-size:.6rem;color:var(--muted);font-weight:500}
 .day:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .rowhead{display:flex;justify-content:space-between;align-items:baseline}
@@ -185,7 +187,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   function renderDays(){
     $("days").innerHTML=DAYS.map(d=>{
       const n=st.alarms.filter(a=>a.day===d&&a.on).length;
-      return `<button class="day" role="tab" id="tab-${d}" aria-selected="${d===st.sel}">${d}${n?`<span class="n">${n}</span>`:""}</button>`}).join("");
+      return `<button class="day${d==="日"?" sun":d==="土"?" sat":""}" role="tab" id="tab-${d}" aria-selected="${d===st.sel}">${d}${n?`<span class="n">${n}</span>`:""}</button>`}).join("");
   }
   function render(){
     renderDays();
