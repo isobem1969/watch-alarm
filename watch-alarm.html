@@ -124,24 +124,26 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   <details>
     <summary>初期設定：ショートカット「WatchAlarm反映」の作り方</summary>
     <div class="body">
-      <p>このページは時計アプリを直接操作できないため、反映ボタンで iPhone のショートカットを起動し、ショートカットが時計アプリのアラームを作成・ON/OFF します。以下は未検証の手順です。まず1件だけで動作確認してください。</p>
+      <p>iOS 27 向けの手順です。このページは時計アプリを直接操作できないため、反映ボタンで iPhone のショートカットを起動し、ショートカットが時計アプリのアラームを作成・ON/OFF・削除します。手順は未検証です。まず1件だけで動作確認してください。</p>
       <p><b>アラームの扱い</b>：1件＝「1つの曜日×1つの時刻」。時計アプリ側のラベルは <span class="mono">WA 月 06:00 起床</span> の形式で、これを目印に照合します。時計アプリで手動編集する場合もラベルは変えないでください。</p>
+      <p><b>アクション名について</b>：時計アプリ用のアクションは Add Alarm（追加）、Find Alarms（検索）、Toggle Alarm（切り替え）、Delete Alarms（削除）です。日本語表示は異なる場合があるため、アクション検索欄に「アラーム」と入れて探してください。</p>
       <ol>
-        <li>ショートカットアプリで新規作成し、名前を <span class="mono">WatchAlarm反映</span> にする（このページの呼び出し名と一致させる）。</li>
+        <li>ショートカットアプリで新規作成ボタンを押す。iOS 27 では最初に「ショートカットを説明」画面が開くので、手動で作る編集画面に切り替える。</li>
+        <li>名前を <span class="mono">WatchAlarm反映</span> にする（このページの呼び出し名と一致させる）。</li>
         <li>「入力から辞書を取得」（入力＝ショートカットの入力）。</li>
-        <li>「辞書の値を取得」キー <span class="mono">alarms</span> → 変数「一覧」に設定。</li>
-        <li>「すべてのアラームを取得」→ 変数「既存」に設定。</li>
-        <li>「一覧の各項目を繰り返す」の中で：
+        <li>「辞書の値を取得」キー <span class="mono">alarms</span> →「各項目を繰り返す」。その中で：
           <ol>
-            <li>繰り返し項目から <span class="mono">key</span>、<span class="mono">state</span>（ON/OFF）、<span class="mono">day</span>、<span class="mono">time</span> を取得。</li>
-            <li>テキスト「未発見」を変数「結果」に設定。</li>
-            <li>「既存の各項目を繰り返す」の中で、名前が key と一致したら「アラームを切り替え」（state が ON ならオン、OFF ならオフ）、「結果」を「発見」に設定。</li>
-            <li>ループ後、「結果」が「未発見」かつ state が ON なら「アラームを作成」（時刻＝time、ラベル＝key、繰り返し＝day の曜日）。繰り返しを変数で指定できない場合は、day が「月」「火」…の7つの「if」で分けて作成。</li>
+            <li>「辞書の値を取得」で繰り返し項目から <span class="mono">key</span>、<span class="mono">state</span>（ON/OFF）、<span class="mono">day</span>、<span class="mono">time</span> を取り出す。</li>
+            <li>「アラームを検索（Find Alarms）」で、ラベルが key と同じものを探す。</li>
+            <li>「If」検索結果に値がある場合：「アラームを切り替え（Toggle Alarm）」で、検索結果を state が ON ならオン、OFF ならオフにする。</li>
+            <li>「Otherwise If」state が ON の場合（＝まだ時計アプリにない）：「アラームを追加（Add Alarm）」で 時刻＝time、ラベル＝key、繰り返し＝day の曜日。繰り返しを変数で指定できない場合は、「If」と iOS 27 の「Otherwise If」で day の月〜日を7つに分けて作成。</li>
           </ol>
         </li>
-        <li>同様にキー <span class="mono">removed</span> の一覧を繰り返し、名前が一致するアラームを「オフ」にする（ショートカットでは削除できないため。削除は時計アプリで手動）。</li>
+        <li>「辞書の値を取得」キー <span class="mono">removed</span> →「各項目を繰り返す」。その中で「アラームを検索」でラベルが key と同じものを探し、「アラームを削除（Delete Alarms）」で削除。初回は削除の確認が出る場合があります。</li>
         <li>最後に「通知を表示」で「反映しました」と出す。</li>
       </ol>
+      <p class="note">このショートカットはページのボタンから起動するため、オートメーションの設定は不要です（iOS 27 ではオートメーションは独立したタブではなく、ショートカットの中に統合されています）。</p>
+      <p class="note">「ショートカットを説明」画面で文章から作らせることもできます（Apple Intelligence 対応機種が必要で、ベータ扱いの機能です）。その場合も、出来上がったアクションが上の手順と同じになっているか確認してください。</p>
       <p class="note">反映ボタンは <span class="mono">shortcuts://run-shortcut?name=WatchAlarm反映&amp;input=text&amp;text=…</span> を開きます。アラーム音はショートカットから指定できないため、必要なら時計アプリで個別に設定してください。</p>
     </div>
   </details>
@@ -204,7 +206,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       const a=st.alarms.find(x=>x.id===id);
       st.removed.push({key:key(a),day:a.day,time:a.time});
       st.alarms=st.alarms.filter(x=>x.id!==id);armed=null;st.dirty=true;render();
-      toast("削除しました。反映すると時計アプリ側はOFFになります（時計アプリからの削除は手動）。")}
+      toast("削除しました。反映すると時計アプリからも削除されます。")}
   });
   $("addForm").addEventListener("submit",e=>{
     e.preventDefault();
