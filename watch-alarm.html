@@ -136,7 +136,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
             <li>「辞書の値を取得」で繰り返し項目から <span class="mono">key</span>、<span class="mono">state</span>（ON/OFF）、<span class="mono">day</span>、<span class="mono">time</span> を取り出す。</li>
             <li>「アラームを検索（Find Alarms）」で、ラベルが key と同じものを探す。</li>
             <li>「If」検索結果に値がある場合：「アラームを切り替え（Toggle Alarm）」で、検索結果を state が ON ならオン、OFF ならオフにする。</li>
-            <li>「Otherwise If」state が ON の場合（＝まだ時計アプリにない）：「アラームを追加（Add Alarm）」で 時刻＝time、ラベル＝key、繰り返し＝day の曜日。繰り返しを変数で指定できない場合は、「If」と iOS 27 の「Otherwise If」で day の月〜日を7つに分けて作成。</li>
+            <li>「Otherwise If」state が ON の場合（＝まだ時計アプリにない）：「アラームを追加（Add Alarm）」で 時刻＝time、ラベル＝key、繰り返し＝<span class="mono">repeat</span>（Monday などの英語の曜日名。「繰り返し」の「変数を選択」で指定）。</li>
           </ol>
         </li>
         <li>「辞書の値を取得」キー <span class="mono">removed</span> →「各項目を繰り返す」。その中で「アラームを検索」でラベルが key と同じものを探し、「アラームを削除（Delete Alarms）」で削除。初回は削除の確認が出る場合があります。</li>
@@ -152,6 +152,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 <script>
 (function(){
   const DAYS=["月","火","水","木","金","土","日"];
+  const EN=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
   const SHORTCUT="WatchAlarm反映";
   const KEY="watchAlarm.v1";
   const sample={alarms:[
@@ -221,7 +222,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   function payload(){
     return {version:1,
       alarms:st.alarms.slice().sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.time.localeCompare(b.time))
-        .map(a=>({key:key(a),day:a.day,time:a.time,label:a.label,state:a.on?"ON":"OFF"})),
+        .map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],time:a.time,label:a.label,state:a.on?"ON":"OFF"})),
       removed:st.removed.map(r=>({key:r.key,day:r.day,time:r.time}))};
   }
   $("applyBtn").addEventListener("click",()=>{
