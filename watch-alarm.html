@@ -15,7 +15,7 @@
   --bg:#fbfbfa; --panel:#ffffff; --card:#f1f2f0; --line:#e3e4e1;
   --fg:#151615; --muted:#6c6f6a; --accent:#151615; --on-accent:#ffffff;
   --off:#c9cbc6; --warn:#a4561b; --ok:#2f6b3d;
-  --on:#007aff; --danger:#d70015;
+  --on:#007aff; --danger:#d70015; --sat-bg:#e3eefc; --sun-bg:#fbe5e6;
   --f-display:"Zen Kaku Gothic New",-apple-system,"Hiragino Sans",sans-serif;
   --f-body:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Zen Kaku Gothic New",sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -23,11 +23,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
-  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; color-scheme:dark}}
+  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
-  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; color-scheme:dark}
+  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
@@ -40,20 +40,20 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .day{font-family:var(--f-display);font-weight:700;font-size:1rem;border:1.5px solid transparent;background:var(--card);
   color:var(--fg);border-radius:12px;padding:12px 0;cursor:pointer;position:relative}
 .day[aria-selected="true"]{border-color:var(--fg);background:var(--panel)}
-.day.sun{color:var(--danger)}
-.day.sat{color:var(--on)}
+.day.sun{color:var(--danger);background:var(--sun-bg)}
+.day.sat{color:var(--on);background:var(--sat-bg)}
 .day .n{position:absolute;top:4px;right:6px;font-family:var(--f-num);font-size:.6rem;color:var(--muted);font-weight:500}
 .day:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .rowhead{display:flex;justify-content:space-between;align-items:baseline}
 .rowhead h2{font-size:.95rem;margin:0;font-weight:600}
 .count{color:var(--muted);font-size:.8rem;font-family:var(--f-num)}
 .list{display:flex;flex-direction:column;gap:10px}
-.alarm{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px 16px}
+.alarm{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px 16px}
 .alarm .t{font-family:var(--f-num);font-weight:600;font-size:2rem;line-height:1.1;font-variant-numeric:tabular-nums}
 .alarm .l{color:var(--muted);font-size:.85rem;min-width:0;overflow-wrap:anywhere}
 .alarm.is-off .t,.alarm.is-off .l{color:var(--off)}
 .alarm .info{background:none;border:0;padding:0;margin:0;text-align:left;color:inherit;font:inherit;cursor:pointer;min-width:0;border-radius:8px}
-.alarm .info .l::after{content:"　タップで編集";font-size:.75rem;color:var(--off)}
+.alarm .info .l::after{content:"　タップで編集";font-size:.75rem;color:var(--off);display:inline-block}
 .alarm.editing{grid-template-columns:1fr}
 .editform{display:grid;grid-template-columns:7.5rem 1fr;gap:8px}
 .editform .editlabel{grid-column:1/-1;font-size:.8rem;color:var(--muted)}
@@ -66,6 +66,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .tog[aria-checked="true"] svg{opacity:1}
 .del{background:none;border:0;color:var(--danger);font-size:1rem;font-weight:600;cursor:pointer;padding:6px}
 .del.confirm{color:var(--danger);font-weight:700}
+.dup{background:none;border:0;color:var(--fg);font-size:1rem;font-weight:600;cursor:pointer;padding:6px}
 .empty{color:var(--muted);font-size:.9rem;padding:18px;border:1.5px dashed var(--line);border-radius:16px;text-align:center}
 hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 .add{display:grid;grid-template-columns:7.5rem 1fr 44px;gap:8px}
@@ -207,6 +208,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       </div>`:`
       <div class="alarm${a.on?"":" is-off"}">
         <button class="info" type="button" data-edit="${a.id}" aria-label="${a.time} ${esc(a.label||"アラーム")} を編集"><div class="t">${a.time}</div><div class="l">${esc(a.label||"アラーム")}</div></button>
+        <button class="dup" data-dup="${a.id}" type="button">複製</button>
         <button class="del${armed===a.id?" confirm":""}" data-del="${a.id}" type="button">${armed===a.id?"本当に削除":"削除"}</button>
         <button class="tog" role="switch" aria-checked="${a.on}" aria-label="${a.time} ${esc(a.label||"")} ON/OFF" data-tog="${a.id}" type="button">${check}</button>
       </div>`).join(""):`<div class="empty">${d}曜日のアラームはまだありません。下の欄から追加できます。</div>`;
@@ -222,6 +224,16 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     const ed=e.target.closest("[data-edit]");
     if(ed){editing=ed.dataset.edit;armed=null;render();const ti=$("edTime");if(ti)ti.focus();return}
     if(e.target.closest("[data-cancel]")){editing=null;render();return}
+    const dp=e.target.closest("[data-dup]");
+    if(dp){const a=st.alarms.find(x=>x.id===dp.dataset.dup);if(!a)return;
+      const base=(a.label||"アラーム");let label="",n=1;
+      do{const sfx=n===1?"（複製）":`（複製${n}）`;label=base.slice(0,20-sfx.length)+sfx;n++}
+      while(st.alarms.some(x=>x.day===a.day&&x.time===a.time&&(x.label||"アラーム")===label));
+      const c={id:uid(),day:a.day,time:a.time,label,on:a.on};
+      st.alarms.splice(st.alarms.indexOf(a)+1,0,c);
+      st.removed=st.removed.filter(r=>r.key!==key(c));
+      editing=c.id;armed=null;st.dirty=true;render();const ti=$("edTime");if(ti)ti.focus();
+      toast("複製しました。時刻や名前を変更して「保存」を押してください。");return}
     const t=e.target.closest("[data-tog]");
     if(t){const a=st.alarms.find(x=>x.id===t.dataset.tog);a.on=!a.on;st.dirty=true;armed=null;editing=null;render();return}
     const d=e.target.closest("[data-del]");
