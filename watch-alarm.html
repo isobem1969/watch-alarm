@@ -15,6 +15,7 @@
   --bg:#fbfbfa; --panel:#ffffff; --card:#f1f2f0; --line:#e3e4e1;
   --fg:#151615; --muted:#6c6f6a; --accent:#151615; --on-accent:#ffffff;
   --off:#c9cbc6; --warn:#a4561b; --ok:#2f6b3d;
+  --on:#007aff; --danger:#d70015;
   --f-display:"Zen Kaku Gothic New",-apple-system,"Hiragino Sans",sans-serif;
   --f-body:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Zen Kaku Gothic New",sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -22,11 +23,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
-  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; color-scheme:dark}}
+  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
-  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; color-scheme:dark}
+  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
@@ -59,10 +60,10 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .sbtn.ghost{background:var(--panel);color:var(--fg);border:1px solid var(--line)}
 .tog{width:30px;height:30px;border-radius:50%;border:2px solid var(--off);background:transparent;cursor:pointer;display:grid;place-items:center;padding:0}
 .tog svg{width:16px;height:16px;opacity:0}
-.tog[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tog[aria-checked="true"]{background:var(--on);border-color:var(--on);color:#ffffff}
 .tog[aria-checked="true"] svg{opacity:1}
-.del{background:none;border:0;color:var(--muted);font-size:.8rem;cursor:pointer;padding:6px}
-.del.confirm{color:var(--warn);font-weight:600}
+.del{background:none;border:0;color:var(--danger);font-size:1rem;font-weight:600;cursor:pointer;padding:6px}
+.del.confirm{color:var(--danger);font-weight:700}
 .empty{color:var(--muted);font-size:.9rem;padding:18px;border:1.5px dashed var(--line);border-radius:16px;text-align:center}
 hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 .add{display:grid;grid-template-columns:7.5rem 1fr 44px;gap:8px}
