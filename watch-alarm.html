@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Watch Alarm</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Watch Alarm">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* レイアウト：1カラムの操作パネル。曜日タブ → その曜日のアラーム一覧 → 追加 → 反映 */
+:root{
+  --bg:#fbfbfa; --panel:#ffffff; --card:#f1f2f0; --line:#e3e4e1;
+  --fg:#151615; --muted:#6c6f6a; --accent:#151615; --on-accent:#ffffff;
+  --off:#c9cbc6; --warn:#a4561b; --ok:#2f6b3d;
+  --f-display:"Zen Kaku Gothic New",-apple-system,"Hiragino Sans",sans-serif;
+  --f-body:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Zen Kaku Gothic New",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
+  --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
+  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
+  --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
+  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-height:1.2;letter-spacing:.01em}
+.sub{color:var(--muted);font-size:.85rem}
+.watch{width:30px;height:30px;color:var(--fg);flex:none}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{font-family:var(--f-display);font-weight:700;font-size:1rem;border:1.5px solid transparent;background:var(--card);
+  color:var(--fg);border-radius:12px;padding:12px 0;cursor:pointer;position:relative}
+.day[aria-selected="true"]{border-color:var(--fg);background:var(--panel)}
+.day .n{position:absolute;top:4px;right:6px;font-family:var(--f-num);font-size:.6rem;color:var(--muted);font-weight:500}
+.day:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.rowhead{display:flex;justify-content:space-between;align-items:baseline}
+.rowhead h2{font-size:.95rem;margin:0;font-weight:600}
+.count{color:var(--muted);font-size:.8rem;font-family:var(--f-num)}
+.list{display:flex;flex-direction:column;gap:10px}
+.alarm{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:14px 16px}
+.alarm .t{font-family:var(--f-num);font-weight:600;font-size:2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.alarm .l{color:var(--muted);font-size:.85rem;min-width:0;overflow-wrap:anywhere}
+.alarm.is-off .t,.alarm.is-off .l{color:var(--off)}
+.tog{width:30px;height:30px;border-radius:50%;border:2px solid var(--off);background:transparent;cursor:pointer;display:grid;place-items:center;padding:0}
+.tog svg{width:16px;height:16px;opacity:0}
+.tog[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.tog[aria-checked="true"] svg{opacity:1}
+.del{background:none;border:0;color:var(--muted);font-size:.8rem;cursor:pointer;padding:6px}
+.del.confirm{color:var(--warn);font-weight:600}
+.empty{color:var(--muted);font-size:.9rem;padding:18px;border:1.5px dashed var(--line);border-radius:16px;text-align:center}
+hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+.add{display:grid;grid-template-columns:7.5rem 1fr 44px;gap:8px}
+.add label{grid-column:1/-1;font-size:.85rem;color:var(--muted)}
+input[type=time],input[type=text],textarea{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:9px 14px;min-width:0;width:100%}
+input[type=time]{font-family:var(--f-num)}
+.plus{border:0;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:1.4rem;cursor:pointer;height:44px}
+.btn{border:0;border-radius:22px;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;padding:12px 16px;cursor:pointer;width:100%}
+.btn.ghost{background:var(--card);color:var(--fg)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pending{font-size:.85rem;color:var(--warn)}
+.pending.ok{color:var(--ok)}
+.toast{font-size:.85rem;color:var(--muted);min-height:1.4em}
+details{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:4px 16px}
+summary{cursor:pointer;font-weight:600;padding:10px 0}
+details .body{padding-bottom:14px;font-size:.9rem;max-width:65ch}
+details ol{padding-left:1.3em;margin:.4em 0}
+details li{margin:.35em 0}
+code,.mono{font-family:var(--f-num);font-size:.82em;background:var(--card);padding:1px 5px;border-radius:5px;overflow-wrap:anywhere}
+textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.8rem}
+.note{color:var(--muted);font-size:.8rem}
+@media (max-width:420px){.alarm .t{font-size:1.7rem}.add{grid-template-columns:6.8rem 1fr 44px}.days{gap:4px}.day{padding:10px 0}}
+@media (prefers-reduced-motion:no-preference){.tog{transition:background .15s,border-color .15s}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Watch Alarm</h1>
+      <div class="sub">曜日別・複数アラーム管理 → iPhone時計アプリへ反映</div>
+    </div>
+    <svg class="watch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6.5" y="6" width="11" height="12" rx="3"/><path d="M9 6l.6-3h4.8l.6 3M9 18l.6 3h4.8l.6-3M12 9.5V12l1.6 1"/></svg>
+  </header>
+
+  <nav class="days" role="tablist" id="days"></nav>
+
+  <section aria-live="polite">
+    <div class="rowhead"><h2 id="dayTitle">月曜日のアラーム</h2><span class="count" id="count"></span></div>
+    <div class="list" id="list" style="margin-top:10px"></div>
+  </section>
+
+  <hr>
+
+  <form class="add" id="addForm">
+    <label for="addTime" id="addLabel">アラーム追加：月曜日</label>
+    <input type="time" id="addTime" value="09:00" required>
+    <input type="text" id="addName" placeholder="アラーム名" maxlength="20">
+    <button class="plus" type="submit" aria-label="追加">+</button>
+  </form>
+
+  <div>
+    <button class="btn" id="applyBtn" type="button">時計アプリに反映</button>
+    <div class="pending" id="pending" style="margin-top:6px"></div>
+  </div>
+  <div class="btns">
+    <button class="btn ghost" id="copyBtn" type="button">設定一覧をコピー</button>
+    <button class="btn ghost" id="importToggle" type="button">設定を貼り付けて復元</button>
+  </div>
+  <div id="importBox" hidden>
+    <textarea id="importText" placeholder="コピーした設定一覧（JSON）を貼り付け"></textarea>
+    <div class="btns" style="margin-top:8px"><button class="btn ghost" id="importCancel" type="button">閉じる</button><button class="btn" id="importDo" type="button">復元する</button></div>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <details>
+    <summary>初期設定：ショートカット「WatchAlarm反映」の作り方</summary>
+    <div class="body">
+      <p>このページは時計アプリを直接操作できないため、反映ボタンで iPhone のショートカットを起動し、ショートカットが時計アプリのアラームを作成・ON/OFF します。以下は未検証の手順です。まず1件だけで動作確認してください。</p>
+      <p><b>アラームの扱い</b>：1件＝「1つの曜日×1つの時刻」。時計アプリ側のラベルは <span class="mono">WA 月 06:00 起床</span> の形式で、これを目印に照合します。時計アプリで手動編集する場合もラベルは変えないでください。</p>
+      <ol>
+        <li>ショートカットアプリで新規作成し、名前を <span class="mono">WatchAlarm反映</span> にする（このページの呼び出し名と一致させる）。</li>
+        <li>「入力から辞書を取得」（入力＝ショートカットの入力）。</li>
+        <li>「辞書の値を取得」キー <span class="mono">alarms</span> → 変数「一覧」に設定。</li>
+        <li>「すべてのアラームを取得」→ 変数「既存」に設定。</li>
+        <li>「一覧の各項目を繰り返す」の中で：
+          <ol>
+            <li>繰り返し項目から <span class="mono">key</span>、<span class="mono">state</span>（ON/OFF）、<span class="mono">day</span>、<span class="mono">time</span> を取得。</li>
+            <li>テキスト「未発見」を変数「結果」に設定。</li>
+            <li>「既存の各項目を繰り返す」の中で、名前が key と一致したら「アラームを切り替え」（state が ON ならオン、OFF ならオフ）、「結果」を「発見」に設定。</li>
+            <li>ループ後、「結果」が「未発見」かつ state が ON なら「アラームを作成」（時刻＝time、ラベル＝key、繰り返し＝day の曜日）。繰り返しを変数で指定できない場合は、day が「月」「火」…の7つの「if」で分けて作成。</li>
+          </ol>
+        </li>
+        <li>同様にキー <span class="mono">removed</span> の一覧を繰り返し、名前が一致するアラームを「オフ」にする（ショートカットでは削除できないため。削除は時計アプリで手動）。</li>
+        <li>最後に「通知を表示」で「反映しました」と出す。</li>
+      </ol>
+      <p class="note">反映ボタンは <span class="mono">shortcuts://run-shortcut?name=WatchAlarm反映&amp;input=text&amp;text=…</span> を開きます。アラーム音はショートカットから指定できないため、必要なら時計アプリで個別に設定してください。</p>
+    </div>
+  </details>
+</div>
+
+<script>
+(function(){
+  const DAYS=["月","火","水","木","金","土","日"];
+  const SHORTCUT="WatchAlarm反映";
+  const KEY="watchAlarm.v1";
+  const sample={alarms:[
+    {id:"s1",day:"月",time:"06:00",label:"起床",on:true},
+    {id:"s2",day:"月",time:"06:30",label:"準備",on:true},
+    {id:"s3",day:"月",time:"07:15",label:"出発",on:true}],removed:[],dirty:true,sel:"月"};
+  let st;
+  try{st=JSON.parse(localStorage.getItem(KEY))}catch(e){st=null}
+  if(!st||!Array.isArray(st.alarms)) st=JSON.parse(JSON.stringify(sample));
+  if(!Array.isArray(st.removed)) st.removed=[];
+  if(!DAYS.includes(st.sel)) st.sel="月";
+  const $=id=>document.getElementById(id);
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+  const key=a=>`WA ${a.day} ${a.time} ${a.label||"アラーム"}`;
+  const uid=()=>Math.random().toString(36).slice(2,9);
+  let toastT; const toast=m=>{$("toast").textContent=m;clearTimeout(toastT);toastT=setTimeout(()=>$("toast").textContent="",4000)};
+  const check='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+  let armed=null;
+
+  function renderDays(){
+    $("days").innerHTML=DAYS.map(d=>{
+      const n=st.alarms.filter(a=>a.day===d&&a.on).length;
+      return `<button class="day" role="tab" id="tab-${d}" aria-selected="${d===st.sel}">${d}${n?`<span class="n">${n}</span>`:""}</button>`}).join("");
+  }
+  function render(){
+    renderDays();
+    const d=st.sel;
+    $("dayTitle").textContent=`${d}曜日のアラーム`;
+    $("addLabel").textContent=`アラーム追加：${d}曜日`;
+    const items=st.alarms.filter(a=>a.day===d).sort((a,b)=>a.time.localeCompare(b.time));
+    $("count").textContent=`${items.filter(a=>a.on).length}件 ON`;
+    $("list").innerHTML=items.length?items.map(a=>`
+      <div class="alarm${a.on?"":" is-off"}">
+        <div><div class="t">${a.time}</div><div class="l">${esc(a.label||"アラーム")}</div></div>
+        <button class="del${armed===a.id?" confirm":""}" data-del="${a.id}" type="button">${armed===a.id?"本当に削除":"削除"}</button>
+        <button class="tog" role="switch" aria-checked="${a.on}" aria-label="${a.time} ${esc(a.label||"")} ON/OFF" data-tog="${a.id}" type="button">${check}</button>
+      </div>`).join(""):`<div class="empty">${d}曜日のアラームはまだありません。下の欄から追加できます。</div>`;
+    const p=$("pending");
+    if(st.dirty){p.className="pending";p.textContent="未反映の変更があります。「時計アプリに反映」を押してください。"}
+    else{p.className="pending ok";p.textContent="最後の反映以降、変更はありません。"}
+    save();
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+
+  $("days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;st.sel=b.id.slice(4);armed=null;render()});
+  $("list").addEventListener("click",e=>{
+    const t=e.target.closest("[data-tog]");
+    if(t){const a=st.alarms.find(x=>x.id===t.dataset.tog);a.on=!a.on;st.dirty=true;armed=null;render();return}
+    const d=e.target.closest("[data-del]");
+    if(d){const id=d.dataset.del;
+      if(armed!==id){armed=id;render();return}
+      const a=st.alarms.find(x=>x.id===id);
+      st.removed.push({key:key(a),day:a.day,time:a.time});
+      st.alarms=st.alarms.filter(x=>x.id!==id);armed=null;st.dirty=true;render();
+      toast("削除しました。反映すると時計アプリ側はOFFになります（時計アプリからの削除は手動）。")}
+  });
+  $("addForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const time=$("addTime").value; if(!time)return;
+    const label=$("addName").value.trim()||"アラーム";
+    if(st.alarms.some(a=>a.day===st.sel&&a.time===time&&(a.label||"アラーム")===label)){toast("同じ曜日・時刻・名前のアラームが既にあります。");return}
+    st.alarms.push({id:uid(),day:st.sel,time,label,on:true});
+    st.removed=st.removed.filter(r=>r.key!==key({day:st.sel,time,label}));
+    $("addName").value="";st.dirty=true;render();toast(`${st.sel}曜日 ${time} を追加しました。`);
+  });
+
+  function payload(){
+    return {version:1,
+      alarms:st.alarms.slice().sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.time.localeCompare(b.time))
+        .map(a=>({key:key(a),day:a.day,time:a.time,label:a.label,state:a.on?"ON":"OFF"})),
+      removed:st.removed.map(r=>({key:r.key,day:r.day,time:r.time}))};
+  }
+  $("applyBtn").addEventListener("click",()=>{
+    const url="shortcuts://run-shortcut?name="+encodeURIComponent(SHORTCUT)+"&input=text&text="+encodeURIComponent(JSON.stringify(payload()));
+    st.dirty=false;st.removed=[];render();
+    toast("ショートカットを起動します。開かない場合は、ショートカット名と、このページをSafariで開いているかを確認してください。");
+    location.href=url;
+  });
+  $("copyBtn").addEventListener("click",()=>{
+    const txt=JSON.stringify({version:1,alarms:st.alarms.map(({day,time,label,on})=>({day,time,label,on}))},null,1);
+    const fallback=()=>{$("importBox").hidden=false;$("importText").value=txt;$("importText").select();toast("自動コピーできませんでした。選択された文字をコピーしてください。")};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast("設定一覧をコピーしました。"),fallback)}else fallback();
+  });
+  $("importToggle").addEventListener("click",()=>{$("importBox").hidden=false;$("importText").value="";$("importText").focus()});
+  $("importCancel").addEventListener("click",()=>{$("importBox").hidden=true});
+  $("importDo").addEventListener("click",()=>{
+    try{
+      const o=JSON.parse($("importText").value);
+      if(!o||!Array.isArray(o.alarms))throw 0;
+      const list=o.alarms.filter(a=>DAYS.includes(a.day)&&/^\d{2}:\d{2}$/.test(a.time))
+        .map(a=>({id:uid(),day:a.day,time:a.time,label:String(a.label||"アラーム").slice(0,20),on:a.on!==false}));
+      st.alarms=list;st.removed=[];st.dirty=true;$("importBox").hidden=true;render();toast(`${list.length}件を復元しました。「時計アプリに反映」で時計アプリにも反映されます。`);
+    }catch(e){toast("読み込めませんでした。「設定一覧をコピー」で出した文字をそのまま貼り付けてください。")}
+  });
+  render();
+})();
+</script>
+
+</body>
+</html>
