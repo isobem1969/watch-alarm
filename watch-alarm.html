@@ -70,7 +70,13 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .empty{color:var(--muted);font-size:.9rem;padding:18px;border:1.5px dashed var(--line);border-radius:16px;text-align:center}
 hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 .add{display:grid;grid-template-columns:7.5rem 1fr 44px;gap:8px}
-.add label{grid-column:1/-1;font-size:.85rem;color:var(--muted)}
+.add label{grid-column:1/-1;font-size:.95rem;font-weight:600;color:var(--muted)}
+.add{grid-template-columns:9rem 1fr 48px}
+#addTime,#addName{font-size:1.25rem;font-weight:700;padding-block:8px}
+#addTime{color:var(--danger)}
+#addName{color:var(--on)}
+#addName::placeholder{color:var(--on);opacity:.75;font-weight:700}
+.add .plus{background:var(--danger);color:#ffffff;height:48px}
 input[type=time],input[type=text],textarea{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:9px 14px;min-width:0;width:100%}
 input[type=time]{font-family:var(--f-num)}
 .plus{border:0;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:1.4rem;cursor:pointer;height:44px}
@@ -88,7 +94,7 @@ details li{margin:.35em 0}
 code,.mono{font-family:var(--f-num);font-size:.82em;background:var(--card);padding:1px 5px;border-radius:5px;overflow-wrap:anywhere}
 textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.8rem}
 .note{color:var(--muted);font-size:.8rem}
-@media (max-width:420px){.alarm .t{font-size:1.7rem}.add{grid-template-columns:6.8rem 1fr 44px}.days{gap:4px}.day{padding:10px 0}}
+@media (max-width:420px){.alarm .t{font-size:1.7rem}.add{grid-template-columns:8.6rem 1fr 48px}.days{gap:4px}.day{padding:10px 0}}
 @media (prefers-reduced-motion:no-preference){.tog{transition:background .15s,border-color .15s}}
 </style>
 </head>
