@@ -46,6 +46,9 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .day .n{position:absolute;top:4px;right:6px;font-family:var(--f-num);font-size:.6rem;color:var(--muted);font-weight:500}
 .day:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .rowhead{display:flex;justify-content:space-between;align-items:baseline}
+.copyrow{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px;align-items:center}
+.copyrow label{grid-column:1/-1;font-size:.85rem;color:var(--muted)}
+.copyrow select{font:inherit;font-weight:600;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:9px 14px;min-width:0;width:100%}
 .rowhead h2{font-size:.95rem;margin:0;font-weight:600}
 .count{color:var(--muted);font-size:.8rem;font-family:var(--f-num)}
 .list{display:flex;flex-direction:column;gap:10px}
@@ -115,6 +118,11 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   <section aria-live="polite">
     <div class="rowhead"><h2 id="dayTitle">月曜日のアラーム</h2><span class="count" id="count"></span></div>
     <div class="list" id="list" style="margin-top:10px"></div>
+    <div class="copyrow">
+      <label for="copyFrom" id="copyLabel">ほかの曜日からコピー</label>
+      <select id="copyFrom"></select>
+      <button class="sbtn" id="copyDay" type="button">コピー</button>
+    </div>
   </section>
 
   <hr>
@@ -191,6 +199,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   const check='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>';
   let armed=null;
   let editing=null;
+  let copySrc=null;
 
   function renderDays(){
     $("days").innerHTML=DAYS.map(d=>{
@@ -202,6 +211,9 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     const d=st.sel;
     $("dayTitle").textContent=`${d}曜日のアラーム`;
     $("addLabel").textContent=`アラーム追加：${d}曜日`;
+    const cf=$("copyFrom"),prevSrc=copySrc;
+    cf.innerHTML=DAYS.filter(x=>x!==d).map(x=>{const n=st.alarms.filter(a=>a.day===x).length;return `<option value="${x}">${x}曜日（${n}件）→ ${d}曜日へ</option>`}).join("");
+    cf.value=(prevSrc&&prevSrc!==d)?prevSrc:(d==="月"?"火":"月");
     const items=st.alarms.filter(a=>a.day===d).sort((a,b)=>a.time.localeCompare(b.time));
     $("count").textContent=`${items.filter(a=>a.on).length}件 ON`;
     $("list").innerHTML=items.length?items.map(a=>editing===a.id?`
@@ -265,6 +277,21 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     st.removed=st.removed.filter(r=>r.key!==key(a));
     editing=null;st.dirty=true;render();
     toast(`${a.day}曜日 ${time} ${label} に変更しました。反映すると、時計アプリの古いアラームを削除して新しい内容で作成します。`);
+  });
+  $("copyFrom").addEventListener("change",e=>{copySrc=e.target.value});
+  $("copyDay").addEventListener("click",()=>{
+    const src=$("copyFrom").value,dst=st.sel;if(!src||src===dst)return;
+    const from=st.alarms.filter(a=>a.day===src).sort((a,b)=>a.time.localeCompare(b.time));
+    if(!from.length){toast(`${src}曜日にはアラームがありません。`);return}
+    let added=0,skipped=0;
+    for(const a of from){
+      const label=a.label||"アラーム";
+      if(st.alarms.some(x=>x.day===dst&&x.time===a.time&&(x.label||"アラーム")===label)){skipped++;continue}
+      const c={id:uid(),day:dst,time:a.time,label,on:a.on};
+      st.alarms.push(c);st.removed=st.removed.filter(r=>r.key!==key(c));added++;
+    }
+    editing=null;armed=null;if(added)st.dirty=true;render();
+    toast(`${src}曜日から${added}件をコピーしました。`+(skipped?`同じ時刻・名前の${skipped}件はすでにあるため除きました。`:"")+"時刻や名前はタップで変更できます。");
   });
   $("addForm").addEventListener("submit",e=>{
     e.preventDefault();
