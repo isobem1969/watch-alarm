@@ -49,6 +49,14 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .alarm .t{font-family:var(--f-num);font-weight:600;font-size:2rem;line-height:1.1;font-variant-numeric:tabular-nums}
 .alarm .l{color:var(--muted);font-size:.85rem;min-width:0;overflow-wrap:anywhere}
 .alarm.is-off .t,.alarm.is-off .l{color:var(--off)}
+.alarm .info{background:none;border:0;padding:0;margin:0;text-align:left;color:inherit;font:inherit;cursor:pointer;min-width:0;border-radius:8px}
+.alarm .info .l::after{content:"　タップで編集";font-size:.75rem;color:var(--off)}
+.alarm.editing{grid-template-columns:1fr}
+.editform{display:grid;grid-template-columns:7.5rem 1fr;gap:8px}
+.editform .editlabel{grid-column:1/-1;font-size:.8rem;color:var(--muted)}
+.editbtns{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
+.sbtn{border:0;border-radius:18px;padding:8px 18px;font:inherit;font-weight:600;cursor:pointer;background:var(--accent);color:var(--on-accent)}
+.sbtn.ghost{background:var(--panel);color:var(--fg);border:1px solid var(--line)}
 .tog{width:30px;height:30px;border-radius:50%;border:2px solid var(--off);background:transparent;cursor:pointer;display:grid;place-items:center;padding:0}
 .tog svg{width:16px;height:16px;opacity:0}
 .tog[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
@@ -171,6 +179,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   let toastT; const toast=m=>{$("toast").textContent=m;clearTimeout(toastT);toastT=setTimeout(()=>$("toast").textContent="",4000)};
   const check='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>';
   let armed=null;
+  let editing=null;
 
   function renderDays(){
     $("days").innerHTML=DAYS.map(d=>{
@@ -184,9 +193,17 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     $("addLabel").textContent=`アラーム追加：${d}曜日`;
     const items=st.alarms.filter(a=>a.day===d).sort((a,b)=>a.time.localeCompare(b.time));
     $("count").textContent=`${items.filter(a=>a.on).length}件 ON`;
-    $("list").innerHTML=items.length?items.map(a=>`
+    $("list").innerHTML=items.length?items.map(a=>editing===a.id?`
+      <div class="alarm editing">
+        <form class="editform" data-form="${a.id}">
+          <label class="editlabel" for="edTime">${d}曜日のアラームを編集</label>
+          <input type="time" id="edTime" value="${a.time}" required>
+          <input type="text" id="edName" value="${esc(a.label||"アラーム")}" maxlength="20" placeholder="アラーム名">
+          <div class="editbtns"><button class="sbtn ghost" type="button" data-cancel>キャンセル</button><button class="sbtn" type="submit">保存</button></div>
+        </form>
+      </div>`:`
       <div class="alarm${a.on?"":" is-off"}">
-        <div><div class="t">${a.time}</div><div class="l">${esc(a.label||"アラーム")}</div></div>
+        <button class="info" type="button" data-edit="${a.id}" aria-label="${a.time} ${esc(a.label||"アラーム")} を編集"><div class="t">${a.time}</div><div class="l">${esc(a.label||"アラーム")}</div></button>
         <button class="del${armed===a.id?" confirm":""}" data-del="${a.id}" type="button">${armed===a.id?"本当に削除":"削除"}</button>
         <button class="tog" role="switch" aria-checked="${a.on}" aria-label="${a.time} ${esc(a.label||"")} ON/OFF" data-tog="${a.id}" type="button">${check}</button>
       </div>`).join(""):`<div class="empty">${d}曜日のアラームはまだありません。下の欄から追加できます。</div>`;
@@ -197,10 +214,13 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   }
   function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 
-  $("days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;st.sel=b.id.slice(4);armed=null;render()});
+  $("days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;st.sel=b.id.slice(4);armed=null;editing=null;render()});
   $("list").addEventListener("click",e=>{
+    const ed=e.target.closest("[data-edit]");
+    if(ed){editing=ed.dataset.edit;armed=null;render();const ti=$("edTime");if(ti)ti.focus();return}
+    if(e.target.closest("[data-cancel]")){editing=null;render();return}
     const t=e.target.closest("[data-tog]");
-    if(t){const a=st.alarms.find(x=>x.id===t.dataset.tog);a.on=!a.on;st.dirty=true;armed=null;render();return}
+    if(t){const a=st.alarms.find(x=>x.id===t.dataset.tog);a.on=!a.on;st.dirty=true;armed=null;editing=null;render();return}
     const d=e.target.closest("[data-del]");
     if(d){const id=d.dataset.del;
       if(armed!==id){armed=id;render();return}
@@ -208,6 +228,21 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       st.removed.push({key:key(a),day:a.day,time:a.time});
       st.alarms=st.alarms.filter(x=>x.id!==id);armed=null;st.dirty=true;render();
       toast("削除しました。反映すると時計アプリからも削除されます。")}
+  });
+  $("list").addEventListener("submit",e=>{
+    const f=e.target.closest("[data-form]");if(!f)return;
+    e.preventDefault();
+    const a=st.alarms.find(x=>x.id===f.dataset.form);if(!a){editing=null;render();return}
+    const time=$("edTime").value; if(!time){toast("時刻を入力してください。");return}
+    const label=$("edName").value.trim()||"アラーム";
+    if(time===a.time&&label===(a.label||"アラーム")){editing=null;render();return}
+    if(st.alarms.some(x=>x.id!==a.id&&x.day===a.day&&x.time===time&&(x.label||"アラーム")===label)){toast("同じ曜日・時刻・名前のアラームが既にあります。");return}
+    const oldKey=key(a);
+    if(!st.removed.some(r=>r.key===oldKey))st.removed.push({key:oldKey,day:a.day,time:a.time});
+    a.time=time;a.label=label;
+    st.removed=st.removed.filter(r=>r.key!==key(a));
+    editing=null;st.dirty=true;render();
+    toast(`${a.day}曜日 ${time} ${label} に変更しました。反映すると、時計アプリの古いアラームを削除して新しい内容で作成します。`);
   });
   $("addForm").addEventListener("submit",e=>{
     e.preventDefault();
