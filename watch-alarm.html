@@ -208,6 +208,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   if(!st||!Array.isArray(st.alarms)) st=JSON.parse(JSON.stringify(sample));
   if(!Array.isArray(st.removed)) st.removed=[];
   if(!DAYS.includes(st.sel)) st.sel="月";
+  st.alarms=st.alarms.filter(x=>!x.fresh);
   const $=id=>document.getElementById(id);
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
   const key=a=>`WA ${a.day} ${a.time} ${a.label||"アラーム"}`;
@@ -255,25 +256,22 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   }
   function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 
-  $("days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;st.sel=b.id.slice(4);armed=null;editing=null;render()});
+  function dropFresh(){st.alarms=st.alarms.filter(x=>!x.fresh)}
+  $("days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;st.sel=b.id.slice(4);armed=null;dropFresh();editing=null;render()});
   $("list").addEventListener("click",e=>{
     const ed=e.target.closest("[data-edit]");
-    if(ed){editing=ed.dataset.edit;armed=null;render();const ti=$("edTime");if(ti)ti.focus();return}
-    if(e.target.closest("[data-cancel]")){editing=null;render();return}
+    if(ed){dropFresh();editing=ed.dataset.edit;armed=null;render();const ti=$("edTime");if(ti)ti.focus();return}
+    if(e.target.closest("[data-cancel]")){dropFresh();editing=null;render();return}
     const dp=e.target.closest("[data-dup]");
-    if(dp){const a=st.alarms.find(x=>x.id===dp.dataset.dup);if(!a)return;
-      const base=(a.label||"アラーム");let label="",n=1;
-      do{const sfx=n===1?"（複製）":`（複製${n}）`;label=base.slice(0,20-sfx.length)+sfx;n++}
-      while(st.alarms.some(x=>x.day===a.day&&x.time===a.time&&(x.label||"アラーム")===label));
-      const c={id:uid(),day:a.day,time:a.time,label,on:a.on};
+    if(dp){dropFresh();const a=st.alarms.find(x=>x.id===dp.dataset.dup);if(!a)return;
+      const c={id:uid(),day:a.day,time:a.time,label:(a.label||"アラーム"),on:a.on,fresh:true};
       st.alarms.splice(st.alarms.indexOf(a)+1,0,c);
-      st.removed=st.removed.filter(r=>r.key!==key(c));
-      editing=c.id;armed=null;st.dirty=true;render();const ti=$("edTime");if(ti)ti.focus();
-      toast("複製しました。時刻や名前を変更して「保存」を押してください。");return}
+      editing=c.id;armed=null;render();const ti=$("edTime");if(ti)ti.focus();
+      toast("複製しました。時刻を変更して「保存」を押してください。");return}
     const t=e.target.closest("[data-tog]");
-    if(t){const a=st.alarms.find(x=>x.id===t.dataset.tog);a.on=!a.on;st.dirty=true;armed=null;editing=null;render();return}
+    if(t){dropFresh();const a=st.alarms.find(x=>x.id===t.dataset.tog);if(!a){render();return}a.on=!a.on;st.dirty=true;armed=null;editing=null;render();return}
     const d=e.target.closest("[data-del]");
-    if(d){const id=d.dataset.del;
+    if(d){dropFresh();const id=d.dataset.del;if(!st.alarms.some(x=>x.id===id)){render();return}
       if(armed!==id){armed=id;render();return}
       const a=st.alarms.find(x=>x.id===id);
       st.removed.push({key:key(a),day:a.day,time:a.time});
@@ -286,8 +284,13 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     const a=st.alarms.find(x=>x.id===f.dataset.form);if(!a){editing=null;render();return}
     const time=$("edTime").value; if(!time){toast("時刻を入力してください。");return}
     const label=$("edName").value.trim()||"アラーム";
-    if(time===a.time&&label===(a.label||"アラーム")){editing=null;render();return}
-    if(st.alarms.some(x=>x.id!==a.id&&x.day===a.day&&x.time===time&&(x.label||"アラーム")===label)){toast("同じ曜日・時刻・名前のアラームが既にあります。");return}
+    if(!a.fresh&&time===a.time&&label===(a.label||"アラーム")){editing=null;render();return}
+    if(st.alarms.some(x=>x.id!==a.id&&x.day===a.day&&x.time===time&&(x.label||"アラーム")===label)){toast(a.fresh?"元のアラームと同じ時刻・名前です。時刻か名前を変えてください。":"同じ曜日・時刻・名前のアラームが既にあります。");return}
+    if(a.fresh){
+      delete a.fresh;a.time=time;a.label=label;
+      st.removed=st.removed.filter(r=>r.key!==key(a));
+      editing=null;st.dirty=true;render();
+      toast(`${a.day}曜日 ${time} ${label} を追加しました。`);return}
     const oldKey=key(a);
     if(!st.removed.some(r=>r.key===oldKey))st.removed.push({key:oldKey,day:a.day,time:a.time});
     a.time=time;a.label=label;
@@ -297,6 +300,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   });
   $("copyFrom").addEventListener("change",e=>{copySrc=e.target.value});
   $("copyDay").addEventListener("click",()=>{
+    dropFresh();
     const src=$("copyFrom").value,dst=st.sel;if(!src||src===dst)return;
     const from=st.alarms.filter(a=>a.day===src).sort((a,b)=>a.time.localeCompare(b.time));
     if(!from.length){toast(`${src}曜日にはアラームがありません。`);return}
@@ -322,18 +326,19 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 
   function payload(){
     return {version:1,
-      alarms:st.alarms.slice().sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.time.localeCompare(b.time))
+      alarms:st.alarms.filter(a=>!a.fresh).sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.time.localeCompare(b.time))
         .map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],[EN[DAYS.indexOf(a.day)]]:"1",time:a.time,label:a.label,state:a.on?"ON":"OFF",...(a.on?{on:"1"}:{})})),
       removed:st.removed.map(r=>({key:r.key,day:r.day,time:r.time}))};
   }
   $("applyBtn").addEventListener("click",()=>{
+    dropFresh();editing=null;
     const url="shortcuts://run-shortcut?name="+encodeURIComponent(SHORTCUT)+"&input=text&text="+encodeURIComponent(JSON.stringify(payload()));
     st.dirty=false;st.removed=[];render();
     toast("ショートカットを起動します。開かない場合は、ショートカット名と、このページをSafariで開いているかを確認してください。");
     location.href=url;
   });
   $("copyBtn").addEventListener("click",()=>{
-    const txt=JSON.stringify({version:1,alarms:st.alarms.map(({day,time,label,on})=>({day,time,label,on}))},null,1);
+    const txt=JSON.stringify({version:1,alarms:st.alarms.filter(a=>!a.fresh).map(({day,time,label,on})=>({day,time,label,on}))},null,1);
     const fallback=()=>{$("importBox").hidden=false;$("importText").value=txt;$("importText").select();toast("自動コピーできませんでした。選択された文字をコピーしてください。")};
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast("設定一覧をコピーしました。"),fallback)}else fallback();
   });
