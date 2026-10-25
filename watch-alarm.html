@@ -210,6 +210,22 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   if(!Array.isArray(st.removed)) st.removed=[];
   if(!DAYS.includes(st.sel)) st.sel="月";
   st.alarms=st.alarms.filter(x=>!x.fresh);
+  (function cleanDupNames(){
+    const strip=s=>String(s||"アラーム").replace(/（複製\d*）/g,"").trim()||"アラーム";
+    const kk=a=>`WA ${a.day} ${a.time} ${a.label||"アラーム"}`;
+    const seen=new Set(),out=[];let changed=false;
+    for(const a of st.alarms){
+      const nl=strip(a.label);
+      if(nl!==(a.label||"アラーム")){
+        if(!st.removed.some(r=>r.key===kk(a)))st.removed.push({key:kk(a),day:a.day,time:a.time});
+        a.label=nl;changed=true;
+      }
+      const k=kk(a);
+      if(seen.has(k)){changed=true;continue}
+      seen.add(k);out.push(a);
+    }
+    if(changed){st.alarms=out;st.removed=st.removed.filter(r=>!seen.has(r.key));st.dirty=true}
+  })();
   const $=id=>document.getElementById(id);
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
   const key=a=>`WA ${a.day} ${a.time} ${a.label||"アラーム"}`;
@@ -265,7 +281,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     if(e.target.closest("[data-cancel]")){dropFresh();editing=null;render();return}
     const dp=e.target.closest("[data-dup]");
     if(dp){dropFresh();const a=st.alarms.find(x=>x.id===dp.dataset.dup);if(!a)return;
-      const c={id:uid(),day:a.day,time:a.time,label:(a.label||"アラーム"),on:a.on,fresh:true};
+      const c={id:uid(),day:a.day,time:a.time,label:(String(a.label||"アラーム").replace(/（複製\d*）/g,"").trim()||"アラーム"),on:a.on,fresh:true};
       st.alarms.splice(st.alarms.indexOf(a)+1,0,c);
       editing=c.id;armed=null;render();
       const ti=$("edTime");
