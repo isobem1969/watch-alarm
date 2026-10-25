@@ -317,10 +317,17 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     home.addEventListener("touchend",()=>{if(x0===null)return;
       if(horiz&&dx<-60)showSettings();else{home.classList.remove("drag");home.style.transform=""}
       x0=null},{passive:true});
-    const hd=document.querySelector(".hd");let hx=null,hy=0;
-    hd.addEventListener("touchstart",e=>{const t=e.touches[0];hx=t.clientX;hy=t.clientY},{passive:true});
-    hd.addEventListener("touchend",e=>{if(hx===null)return;const t=e.changedTouches[0];const ddx=t.clientX-hx,ddy=t.clientY-hy;
-      if(ddx>80&&Math.abs(ddx)>Math.abs(ddy)*1.5)showHome();hx=null},{passive:true});
+    /* 曜日設定画面のどこでも右へスワイプ → 次のアラーム画面へ戻る（入力欄・選択欄から始めた操作は除く） */
+    const app=document.querySelector(".app");let hx=null,hy=0,hdx=0,hh=null;
+    app.addEventListener("touchstart",e=>{
+      if(!home.classList.contains("away")||e.target.closest("input,select,textarea")){hx=null;return}
+      const t=e.touches[0];hx=t.clientX;hy=t.clientY;hdx=0;hh=null},{passive:true});
+    app.addEventListener("touchmove",e=>{if(hx===null)return;const t=e.touches[0];hdx=t.clientX-hx;const dy=t.clientY-hy;
+      if(hh===null&&(Math.abs(hdx)>10||Math.abs(dy)>10))hh=Math.abs(hdx)>Math.abs(dy)*1.3;
+      if(hh&&hdx>0){home.classList.add("drag");home.style.transform=`translateX(calc(-100% + ${hdx}px))`}},{passive:true});
+    app.addEventListener("touchend",()=>{if(hx===null)return;
+      if(hh&&hdx>70)showHome();else if(hh){home.classList.remove("drag");home.style.transform=""}
+      hx=null},{passive:true});
   })();
   function render(){
     renderDays();
