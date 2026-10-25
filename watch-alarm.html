@@ -49,6 +49,22 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-height:1.2;letter-spacing:.01em}
 .sub{color:var(--muted);font-size:.85rem}
+/* 次のアラーム画面（最初に表示。左へスワイプで設定画面へ） */
+.home{position:fixed;inset:0;z-index:20;height:100dvh;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:calc(env(safe-area-inset-top,0px) + 24px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 24px) max(16px,env(safe-area-inset-left,0px));
+  transition:transform .3s ease;touch-action:pan-y;will-change:transform}
+.home.away{transform:translateX(-100%)}
+.home.drag{transition:none}
+.home .hl{font-family:var(--f-display);font-weight:700;font-size:1.05rem;color:var(--muted);letter-spacing:.04em}
+.home .nd{margin-top:18px;font-family:var(--f-display);font-weight:700;font-size:1.6rem}
+.home .nd.sat{color:var(--on)} .home .nd.sun{color:var(--danger)}
+.home .nt{font-family:var(--f-num);font-weight:600;font-size:clamp(4.2rem,24vw,7rem);line-height:1.05;letter-spacing:.02em;margin-top:4px}
+.home .nl{font-family:var(--f-display);font-weight:700;font-size:1.3rem;color:var(--on);margin-top:6px}
+.home .nr{margin-top:14px;font-size:1.05rem;color:var(--muted);font-weight:600}
+.home .none{margin-top:18px;font-size:1.2rem;color:var(--muted);font-weight:600}
+.home .go{margin-top:44px;border:0;background:var(--card);color:var(--fg);font:inherit;font-weight:700;font-size:1rem;padding:12px 22px;border-radius:22px;cursor:pointer}
+.home .hint{margin-top:10px;font-size:.85rem;color:var(--muted)}
+.back{align-self:flex-start;border:0;background:none;color:var(--on);font:inherit;font-weight:700;font-size:.95rem;padding:0 0 6px;cursor:pointer}
 .watch{width:30px;height:30px;color:var(--fg);flex:none}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .day{font-family:var(--f-display);font-weight:700;font-size:1rem;border:1.5px solid transparent;background:var(--card);
@@ -119,8 +135,16 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 </head>
 <body>
 
+<section class="home" id="home" aria-label="次のアラーム">
+  <div class="hl">次のアラーム</div>
+  <div id="nxBody"></div>
+  <button class="go" id="goSettings" type="button">曜日ごとの設定へ ›</button>
+  <div class="hint">左へスワイプしても進めます</div>
+</section>
+
 <div class="app">
  <div class="hd"><div class="wrap">
+  <button class="back" id="goHome" type="button">‹ 次のアラーム</button>
   <header>
     <div>
       <h1>Watch Alarm</h1>
@@ -254,8 +278,53 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       const n=st.alarms.filter(a=>a.day===d&&a.on).length;
       return `<button class="day${d==="日"?" sun":d==="土"?" sat":""}" role="tab" id="tab-${d}" aria-selected="${d===st.sel}">${d}${n?`<span class="n">${n}</span>`:""}</button>`}).join("");
   }
+  /* 次に鳴るアラーム（ONのものから、今より後でいちばん近いもの） */
+  function renderNext(){
+    const el=$("nxBody");if(!el)return;
+    const now=new Date();let best=null;
+    for(const a of st.alarms){
+      if(a.fresh||!a.on||!/^\d{2}:\d{2}$/.test(a.time))continue;
+      const js=(DAYS.indexOf(a.day)+1)%7;
+      const [h,m]=a.time.split(":").map(Number);
+      const t=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,m,0,0);
+      t.setDate(t.getDate()+((js-now.getDay()+7)%7));
+      if(t<=now)t.setDate(t.getDate()+7);
+      if(!best||t<best.t)best={t,a};
+    }
+    if(!best){el.innerHTML=`<div class="none">ONのアラームはありません</div>`;return}
+    const diff=Math.round((best.t-now)/60000),d=Math.floor(diff/1440),hh=Math.floor(diff%1440/60),mm=diff%60;
+    const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const dd=Math.round((new Date(best.t.getFullYear(),best.t.getMonth(),best.t.getDate())-today)/86400000);
+    const when=(dd===0?"今日":dd===1?"明日":"")+`（${best.a.day}曜日）`;
+    const rest=(d?`${d}日`:"")+(d||hh?`${hh}時間`:"")+`${mm}分`;
+    const cls=best.a.day==="土"?" sat":best.a.day==="日"?" sun":"";
+    el.innerHTML=`<div class="nd${cls}">${when}</div><div class="nt">${best.a.time}</div><div class="nl">${esc(best.a.label||"アラーム")}</div><div class="nr">あと ${rest}</div>`;
+  }
+  setInterval(renderNext,30000);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderNext()});
+  /* 画面切り替え：次のアラーム ⇄ 曜日ごとの設定 */
+  const home=$("home");
+  const showSettings=()=>{home.classList.remove("drag");home.style.transform="";home.classList.add("away");home.setAttribute("aria-hidden","true")};
+  const showHome=()=>{renderNext();home.classList.remove("drag");home.style.transform="";home.classList.remove("away");home.removeAttribute("aria-hidden")};
+  $("goSettings").addEventListener("click",showSettings);
+  $("goHome").addEventListener("click",showHome);
+  (function(){
+    let x0=null,y0=0,dx=0,horiz=null;
+    home.addEventListener("touchstart",e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;dx=0;horiz=null},{passive:true});
+    home.addEventListener("touchmove",e=>{if(x0===null)return;const t=e.touches[0];dx=t.clientX-x0;const dy=t.clientY-y0;
+      if(horiz===null&&(Math.abs(dx)>8||Math.abs(dy)>8))horiz=Math.abs(dx)>Math.abs(dy);
+      if(horiz&&dx<0){home.classList.add("drag");home.style.transform=`translateX(${dx}px)`}},{passive:true});
+    home.addEventListener("touchend",()=>{if(x0===null)return;
+      if(horiz&&dx<-60)showSettings();else{home.classList.remove("drag");home.style.transform=""}
+      x0=null},{passive:true});
+    const hd=document.querySelector(".hd");let hx=null,hy=0;
+    hd.addEventListener("touchstart",e=>{const t=e.touches[0];hx=t.clientX;hy=t.clientY},{passive:true});
+    hd.addEventListener("touchend",e=>{if(hx===null)return;const t=e.changedTouches[0];const ddx=t.clientX-hx,ddy=t.clientY-hy;
+      if(ddx>80&&Math.abs(ddx)>Math.abs(ddy)*1.5)showHome();hx=null},{passive:true});
+  })();
   function render(){
     renderDays();
+    renderNext();
     const d=st.sel;
     $("dayTitle").textContent=`${d}曜日のアラーム`;
     $("addLabel").textContent=`アラーム追加：${d}曜日`;
