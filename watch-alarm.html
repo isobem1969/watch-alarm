@@ -306,7 +306,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   function payload(){
     return {version:1,
       alarms:st.alarms.slice().sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.time.localeCompare(b.time))
-        .map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],time:a.time,label:a.label,state:a.on?"ON":"OFF"})),
+        .map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],[EN[DAYS.indexOf(a.day)]]:"1",time:a.time,label:a.label,state:a.on?"ON":"OFF"})),
       removed:st.removed.map(r=>({key:r.key,day:r.day,time:r.time}))};
   }
   $("applyBtn").addEventListener("click",()=>{
