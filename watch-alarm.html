@@ -30,9 +30,18 @@
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
   --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
-.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;margin:0;overflow:hidden}
+.app{position:fixed;inset:0;display:flex;flex-direction:column;height:100dvh}
+.hd,.bd,.ft{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.hd{flex:none;padding-top:calc(env(safe-area-inset-top,0px) + 16px);padding-bottom:10px;background:var(--bg);border-bottom:1px solid var(--line)}
+.bd{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-block:12px 20px}
+.ft{flex:none;padding-top:10px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--bg);border-top:1px solid var(--line)}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.ft .wrap{gap:10px}
+.ft hr{margin:0}
+.copyrow{margin-top:0!important}
+.toast:empty{display:none}
 header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-height:1.2;letter-spacing:.01em}
 .sub{color:var(--muted);font-size:.85rem}
@@ -104,7 +113,8 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 </head>
 <body>
 
-<div class="wrap">
+<div class="app">
+ <div class="hd"><div class="wrap">
   <header>
     <div>
       <h1>Watch Alarm</h1>
@@ -115,29 +125,13 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 
   <nav class="days" role="tablist" id="days"></nav>
 
+  <div class="rowhead"><h2 id="dayTitle">月曜日のアラーム</h2><span class="count" id="count"></span></div>
+ </div></div>
+
+ <main class="bd"><div class="wrap">
   <section aria-live="polite">
-    <div class="rowhead"><h2 id="dayTitle">月曜日のアラーム</h2><span class="count" id="count"></span></div>
-    <div class="list" id="list" style="margin-top:10px"></div>
-    <div class="copyrow">
-      <label for="copyFrom" id="copyLabel">ほかの曜日からコピー</label>
-      <select id="copyFrom"></select>
-      <button class="sbtn" id="copyDay" type="button">コピー</button>
-    </div>
+    <div class="list" id="list"></div>
   </section>
-
-  <hr>
-
-  <form class="add" id="addForm">
-    <label for="addTime" id="addLabel">アラーム追加：月曜日</label>
-    <input type="time" id="addTime" value="09:00" required>
-    <input type="text" id="addName" placeholder="アラーム名" maxlength="20">
-    <button class="plus" type="submit" aria-label="追加">+</button>
-  </form>
-
-  <div>
-    <button class="btn" id="applyBtn" type="button">時計アプリに反映</button>
-    <div class="pending" id="pending" style="margin-top:6px"></div>
-  </div>
   <div class="btns">
     <button class="btn ghost" id="copyBtn" type="button">設定一覧をコピー</button>
     <button class="btn ghost" id="importToggle" type="button">設定を貼り付けて復元</button>
@@ -146,8 +140,6 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     <textarea id="importText" placeholder="コピーした設定一覧（JSON）を貼り付け"></textarea>
     <div class="btns" style="margin-top:8px"><button class="btn ghost" id="importCancel" type="button">閉じる</button><button class="btn" id="importDo" type="button">復元する</button></div>
   </div>
-  <div class="toast" id="toast" role="status"></div>
-
   <details>
     <summary>初期設定：ショートカット「WatchAlarm反映」の作り方</summary>
     <div class="body">
@@ -174,6 +166,30 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       <p class="note">反映ボタンは <span class="mono">shortcuts://run-shortcut?name=WatchAlarm反映&amp;input=text&amp;text=…</span> を開きます。アラーム音はショートカットから指定できないため、必要なら時計アプリで個別に設定してください。</p>
     </div>
   </details>
+ </div></main>
+
+ <div class="ft"><div class="wrap">
+  <div class="copyrow">
+    <label for="copyFrom" id="copyLabel">ほかの曜日からコピー</label>
+    <select id="copyFrom"></select>
+    <button class="sbtn" id="copyDay" type="button">コピー</button>
+  </div>
+
+  <hr>
+
+  <form class="add" id="addForm">
+    <label for="addTime" id="addLabel">アラーム追加：月曜日</label>
+    <input type="time" id="addTime" value="09:00" required>
+    <input type="text" id="addName" placeholder="アラーム名" maxlength="20">
+    <button class="plus" type="submit" aria-label="追加">+</button>
+  </form>
+
+  <div>
+    <button class="btn" id="applyBtn" type="button">時計アプリに反映</button>
+    <div class="pending" id="pending" style="margin-top:6px"></div>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+ </div></div>
 </div>
 
 <script>
