@@ -473,7 +473,9 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     if(syn)for(const k in syn)if(!curKeys.has(k)&&!rm.has(k))rm.set(k,{key:k,day:syn[k].day,time:syn[k].time});
     return {version:1,
       alarms:send.map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],[EN[DAYS.indexOf(a.day)]]:"1",time:atISO(a.time),label:a.label,state:a.on?"ON":"OFF",...(a.on?{on:"1"}:{})})),
-      removed:[...rm.values()]};
+      removed:[...rm.values()],
+      /* ウィジェット用：ONのアラーム全件（曜日と時刻） */
+      widget:JSON.stringify({on:cur.filter(a=>a.on).map(a=>({day:a.day,time:a.time}))})};
   }
   function apply(full){
     dropFresh();editing=null;armed=null;
