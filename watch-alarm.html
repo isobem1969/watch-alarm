@@ -72,6 +72,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .day[aria-selected="true"]{border-color:var(--fg);background:var(--panel)}
 .day.sun{color:var(--danger);background:var(--sun-bg)}
 .day.sat{color:var(--on);background:var(--sat-bg)}
+.day.today{color:#1c1c1e;background:#ffd60a}
 .day .n{position:absolute;top:4px;right:6px;font-family:var(--f-num);font-size:.6rem;color:var(--muted);font-weight:500}
 .day:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .rowhead{display:flex;justify-content:space-between;align-items:baseline}
@@ -273,10 +274,12 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   let editing=null;
   let copySrc=null;
 
+  let dayShown=-1;
   function renderDays(){
+    dayShown=new Date().getDay();const today="日月火水木金土"[dayShown];
     $("days").innerHTML=DAYS.map(d=>{
       const n=st.alarms.filter(a=>a.day===d&&a.on).length;
-      return `<button class="day${d==="日"?" sun":d==="土"?" sat":""}" role="tab" id="tab-${d}" aria-selected="${d===st.sel}">${d}${n?`<span class="n">${n}</span>`:""}</button>`}).join("");
+      return `<button class="day${d===today?" today":d==="日"?" sun":d==="土"?" sat":""}" role="tab" id="tab-${d}" aria-selected="${d===st.sel}">${d}${n?`<span class="n">${n}</span>`:""}</button>`}).join("");
   }
   /* 次に鳴るアラーム（ONのものから、今より後でいちばん近いもの） */
   function renderNext(){
@@ -300,8 +303,9 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     const cls=best.a.day==="土"?" sat":best.a.day==="日"?" sun":"";
     el.innerHTML=`<div class="nd${cls}">${when}</div><div class="nt">${best.a.time}</div><div class="nl">${esc(best.a.label||"アラーム")}</div><div class="nr">あと ${rest}</div>`;
   }
-  setInterval(renderNext,30000);
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden)renderNext()});
+  const tick=()=>{if(new Date().getDay()!==dayShown)renderDays();renderNext()};
+  setInterval(tick,30000);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick()});
   /* 画面切り替え：次のアラーム ⇄ 曜日ごとの設定 */
   const home=$("home");
   const showSettings=()=>{home.classList.remove("drag");home.style.transform="";home.classList.add("away");home.setAttribute("aria-hidden","true")};
