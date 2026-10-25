@@ -150,6 +150,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     <textarea id="importText" placeholder="コピーした設定一覧（JSON）を貼り付け"></textarea>
     <div class="btns" style="margin-top:8px"><button class="btn ghost" id="importCancel" type="button">閉じる</button><button class="btn" id="importDo" type="button">復元する</button></div>
   </div>
+  <button class="btn ghost" id="resendAll" type="button">全件を送り直す（時計アプリと食い違うとき）</button>
   <button class="btn delall" id="delAll" type="button" hidden>この曜日のアラームをすべて削除</button>
   <details>
     <summary>初期設定：ショートカット「WatchAlarm反映」の作り方</summary>
@@ -235,6 +236,9 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     }
     if(changed){st.alarms=out;st.removed=st.removed.filter(r=>!seen.has(r.key));st.dirty=true}
   })();
+  /* 前回反映時の状態（差分送信用）。未作成で未反映の変更がなければ、現状を反映済みとみなす */
+  const snapOf=list=>{const m={};for(const a of list){if(a.fresh)continue;m[`WA ${a.day} ${a.time} ${a.label||"アラーム"}`]={on:!!a.on,day:a.day,time:a.time}}return m};
+  if(!st.synced||typeof st.synced!=="object"){st.synced=st.dirty?null:snapOf(st.alarms)}
   const $=id=>document.getElementById(id);
   const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
   const key=a=>`WA ${a.day} ${a.time} ${a.label||"アラーム"}`;
@@ -378,15 +382,27 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     const d=new Date(),p=n=>String(n).padStart(2,"0"),o=-d.getTimezoneOffset(),s=o>=0?"+":"-",ao=Math.abs(o);
     return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${t}:00${s}${p(Math.floor(ao/60))}:${p(ao%60)}`;
   }
-  function payload(){
+  function payload(full){
+    const cur=st.alarms.filter(a=>!a.fresh);
+    const curKeys=new Set(cur.map(key));
+    const syn=st.synced;
+    const send=cur.filter(a=>full||!syn||!syn[key(a)]||syn[key(a)].on!==!!a.on)
+      .sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.time.localeCompare(b.time));
+    const rm=new Map();
+    for(const r of st.removed)if(!curKeys.has(r.key))rm.set(r.key,{key:r.key,day:r.day,time:r.time});
+    if(syn)for(const k in syn)if(!curKeys.has(k)&&!rm.has(k))rm.set(k,{key:k,day:syn[k].day,time:syn[k].time});
     return {version:1,
-      alarms:st.alarms.filter(a=>!a.fresh).sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.time.localeCompare(b.time))
-        .map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],[EN[DAYS.indexOf(a.day)]]:"1",time:atISO(a.time),label:a.label,state:a.on?"ON":"OFF",...(a.on?{on:"1"}:{})})),
-      removed:st.removed.map(r=>({key:r.key,day:r.day,time:r.time}))};
+      alarms:send.map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],[EN[DAYS.indexOf(a.day)]]:"1",time:atISO(a.time),label:a.label,state:a.on?"ON":"OFF",...(a.on?{on:"1"}:{})})),
+      removed:[...rm.values()]};
   }
-  $("applyBtn").addEventListener("click",()=>{
-    dropFresh();editing=null;
-    const json=JSON.stringify(payload());
+  function apply(full){
+    dropFresh();editing=null;armed=null;
+    const pl=payload(full);
+    if(!full&&!pl.alarms.length&&!pl.removed.length){
+      st.dirty=false;st.removed=[];render();
+      toast("前回の反映から変更はありません。時計アプリと食い違う場合は「全件を送り直す」を押してください。");return}
+    const json=JSON.stringify(pl);
+    const msg=`${pl.alarms.length}件の作成・ON/OFFと${pl.removed.length}件の削除を時計アプリに送ります。`;
     const url="shortcuts://run-shortcut?name="+encodeURIComponent(SHORTCUT);
     let ok=false;
     try{
@@ -397,13 +413,19 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       ok=document.execCommand("copy");
       document.body.removeChild(ta);
     }catch(err){ok=false}
-    const go=()=>{st.dirty=false;st.removed=[];render();
-      toast("データをクリップボードにコピーして、ショートカットを起動します。");
+    const go=()=>{st.dirty=false;st.removed=[];st.synced=snapOf(st.alarms);render();
+      toast(msg);
       location.href=url;};
     if(ok){go();return}
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(json).then(go,()=>toast("クリップボードにコピーできなかったため、反映を中止しました。もう一度押してください。"));
     }else{toast("クリップボードにコピーできなかったため、反映を中止しました。")}
+  }
+  $("applyBtn").addEventListener("click",()=>apply(false));
+  $("resendAll").addEventListener("click",()=>{
+    const n=st.alarms.filter(a=>!a.fresh).length;
+    if(!confirm(`全${n}件を時計アプリに送り直します。件数が多いと数分かかります。よろしいですか？`))return;
+    apply(true);
   });
   $("copyBtn").addEventListener("click",()=>{
     const txt=JSON.stringify({version:1,alarms:st.alarms.filter(a=>!a.fresh).map(({day,time,label,on})=>({day,time,label,on}))},null,1);
