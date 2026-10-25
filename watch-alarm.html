@@ -43,6 +43,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .copyrow{margin-top:0!important}
 .toast:empty{display:none}
 .btn.delall{background:var(--danger);color:#ffffff}
+#allRow[hidden]{display:none}
+.btn.allon{background:#ff9500;color:#ffffff}
+.btn.alloff{background:var(--on);color:#ffffff}
 header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-height:1.2;letter-spacing:.01em}
 .sub{color:var(--muted);font-size:.85rem}
@@ -135,6 +138,10 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   <section aria-live="polite">
     <div class="list" id="list"></div>
   </section>
+  <div class="btns" id="allRow" hidden>
+    <button class="btn allon" id="allOn" type="button">すべてON</button>
+    <button class="btn alloff" id="allOff" type="button">すべてOFF</button>
+  </div>
   <button class="btn delall" id="delAll" type="button" hidden>この曜日のアラームをすべて削除</button>
   <div class="btns">
     <button class="btn ghost" id="copyBtn" type="button">設定一覧をコピー</button>
@@ -252,6 +259,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     cf.innerHTML=DAYS.filter(x=>x!==d).map(x=>{const n=st.alarms.filter(a=>a.day===x).length;return `<option value="${x}">${x}曜日（${n}件）→ ${d}曜日へ</option>`}).join("");
     cf.value=(prevSrc&&prevSrc!==d)?prevSrc:(d==="月"?"火":"月");
     const items=st.alarms.filter(a=>a.day===d).sort((a,b)=>a.time.localeCompare(b.time));
+    $("allRow").hidden=!items.length;
     $("delAll").hidden=!items.length;$("delAll").textContent=`${d}曜日のアラームをすべて削除（${items.length}件）`;
     $("count").textContent=`${items.filter(a=>a.on).length}件 ON`;
     $("list").innerHTML=items.length?items.map(a=>editing===a.id?`
@@ -329,6 +337,17 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     st.alarms=st.alarms.filter(a=>a.day!==d);st.dirty=true;render();
     toast(`${d}曜日のアラーム${items.length}件を削除しました。「時計アプリに反映」で時計アプリからも削除されます。`);
   });
+  function setAll(on){
+    dropFresh();editing=null;armed=null;
+    const d=st.sel,items=st.alarms.filter(a=>a.day===d);if(!items.length){render();return}
+    const n=items.filter(a=>a.on!==on).length;
+    if(!n){render();toast(`${d}曜日のアラームは、すでにすべて${on?"ON":"OFF"}です。`);return}
+    for(const a of items)a.on=on;
+    st.dirty=true;render();
+    toast(`${d}曜日のアラーム${items.length}件をすべて${on?"ON":"OFF"}にしました。「時計アプリに反映」で時計アプリにも反映されます。`);
+  }
+  $("allOn").addEventListener("click",()=>setAll(true));
+  $("allOff").addEventListener("click",()=>setAll(false));
   $("copyFrom").addEventListener("change",e=>{copySrc=e.target.value});
   $("copyDay").addEventListener("click",()=>{
     dropFresh();
