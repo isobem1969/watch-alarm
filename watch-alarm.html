@@ -42,6 +42,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .ft hr{margin:0}
 .copyrow{margin-top:0!important}
 .toast:empty{display:none}
+.btn.delall{background:var(--danger);color:#ffffff}
 header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-height:1.2;letter-spacing:.01em}
 .sub{color:var(--muted);font-size:.85rem}
@@ -134,6 +135,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   <section aria-live="polite">
     <div class="list" id="list"></div>
   </section>
+  <button class="btn delall" id="delAll" type="button" hidden>この曜日のアラームをすべて削除</button>
   <div class="btns">
     <button class="btn ghost" id="copyBtn" type="button">設定一覧をコピー</button>
     <button class="btn ghost" id="importToggle" type="button">設定を貼り付けて復元</button>
@@ -250,6 +252,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     cf.innerHTML=DAYS.filter(x=>x!==d).map(x=>{const n=st.alarms.filter(a=>a.day===x).length;return `<option value="${x}">${x}曜日（${n}件）→ ${d}曜日へ</option>`}).join("");
     cf.value=(prevSrc&&prevSrc!==d)?prevSrc:(d==="月"?"火":"月");
     const items=st.alarms.filter(a=>a.day===d).sort((a,b)=>a.time.localeCompare(b.time));
+    $("delAll").hidden=!items.length;$("delAll").textContent=`${d}曜日のアラームをすべて削除（${items.length}件）`;
     $("count").textContent=`${items.filter(a=>a.on).length}件 ON`;
     $("list").innerHTML=items.length?items.map(a=>editing===a.id?`
       <div class="alarm editing">
@@ -318,6 +321,14 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     editing=null;st.dirty=true;render();
     toast(`${a.day}曜日 ${time} ${label} に変更しました。反映すると、時計アプリの古いアラームを削除して新しい内容で作成します。`);
   });
+  $("delAll").addEventListener("click",()=>{
+    dropFresh();editing=null;armed=null;
+    const d=st.sel,items=st.alarms.filter(a=>a.day===d);if(!items.length){render();return}
+    if(!confirm(`${d}曜日のアラーム${items.length}件をすべて削除します。よろしいですか？\n（「時計アプリに反映」を押すと、時計アプリからも削除されます）`))return;
+    for(const a of items){const k=key(a);if(!st.removed.some(r=>r.key===k))st.removed.push({key:k,day:a.day,time:a.time})}
+    st.alarms=st.alarms.filter(a=>a.day!==d);st.dirty=true;render();
+    toast(`${d}曜日のアラーム${items.length}件を削除しました。「時計アプリに反映」で時計アプリからも削除されます。`);
+  });
   $("copyFrom").addEventListener("change",e=>{copySrc=e.target.value});
   $("copyDay").addEventListener("click",()=>{
     dropFresh();
@@ -352,10 +363,24 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   }
   $("applyBtn").addEventListener("click",()=>{
     dropFresh();editing=null;
-    const url="shortcuts://run-shortcut?name="+encodeURIComponent(SHORTCUT)+"&input=text&text="+encodeURIComponent(JSON.stringify(payload()));
-    st.dirty=false;st.removed=[];render();
-    toast("ショートカットを起動します。開かない場合は、ショートカット名と、このページをSafariで開いているかを確認してください。");
-    location.href=url;
+    const json=JSON.stringify(payload());
+    const url="shortcuts://run-shortcut?name="+encodeURIComponent(SHORTCUT);
+    let ok=false;
+    try{
+      const ta=document.createElement("textarea");
+      ta.value=json;ta.setAttribute("readonly","");
+      ta.style.cssText="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;font-size:16px";
+      document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,json.length);
+      ok=document.execCommand("copy");
+      document.body.removeChild(ta);
+    }catch(err){ok=false}
+    const go=()=>{st.dirty=false;st.removed=[];render();
+      toast("データをクリップボードにコピーして、ショートカットを起動します。");
+      location.href=url;};
+    if(ok){go();return}
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(json).then(go,()=>toast("クリップボードにコピーできなかったため、反映を中止しました。もう一度押してください。"));
+    }else{toast("クリップボードにコピーできなかったため、反映を中止しました。")}
   });
   $("copyBtn").addEventListener("click",()=>{
     const txt=JSON.stringify({version:1,alarms:st.alarms.filter(a=>!a.fresh).map(({day,time,label,on})=>({day,time,label,on}))},null,1);
