@@ -36,11 +36,12 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .hd,.bd,.ft{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .hd{flex:none;padding-top:calc(env(safe-area-inset-top,0px) + 16px);padding-bottom:10px;background:var(--chrome);border-bottom:1px solid var(--line)}
 .bd{flex:1 1 auto;min-height:0;background:var(--body-bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-block:12px 20px}
-/* 一覧の右下に「一番上へ／一番下へ」のボタンを重ねる */
+/* 一覧の右側（上下中央）に「一番上へ／一番下へ」のボタンを置く */
 .bdwrap{flex:1 1 auto;min-height:0;position:relative;display:flex;flex-direction:column}
 .bdwrap>.bd{flex:1 1 auto}
-.jump{position:absolute;right:max(8px,env(safe-area-inset-right,0px));bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:5}
+.jump{position:absolute;right:max(8px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:5}
 .jump[hidden]{display:none}
+.bd.jumpon{padding-right:calc(max(8px,env(safe-area-inset-right,0px)) + 52px)} /* ボタンとカードが重ならないよう右に余白 */
 .jump button{width:42px;height:42px;border-radius:50%;border:0;background:rgba(21,22,21,.6);color:#ffffff;font-size:1.25rem;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .ft{flex:none;padding-top:10px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--chrome);border-top:1px solid var(--line)}
 .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
@@ -346,7 +347,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       hx=null},{passive:true});
   })();
   /* 一覧がスクロールするときだけ「一番上へ／一番下へ」ボタンを出す */
-  function updJump(){const bd=document.querySelector(".bd"),j=$("jump");if(bd&&j)j.hidden=bd.scrollHeight<=bd.clientHeight+8}
+  function updJump(){const bd=document.querySelector(".bd"),j=$("jump");if(!bd||!j)return;const on=bd.scrollHeight>bd.clientHeight+8;j.hidden=!on;bd.classList.toggle("jumpon",on)}
   function render(){
     requestAnimationFrame(updJump);
     renderDays();
