@@ -36,14 +36,16 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .hd,.bd,.ft{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .hd{flex:none;padding-top:calc(env(safe-area-inset-top,0px) + 16px);padding-bottom:10px;background:var(--chrome);border-bottom:1px solid var(--line)}
 .bd{flex:1 1 auto;min-height:0;background:var(--body-bg);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-block:12px 20px}
-.ft{flex:none;padding-top:10px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--chrome)}
-/* 「ほかの曜日からコピー」の行はボディと同じ薄いグレーにして、白いフッターとの境に線を引く */
-.ft .copyrow{background:var(--body-bg);margin:-10px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));
-  padding:10px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
-.ft .copyrow{margin-top:-10px!important}
+/* 一覧の右下に「一番上へ／一番下へ」のボタンを重ねる */
+.bdwrap{flex:1 1 auto;min-height:0;position:relative;display:flex;flex-direction:column}
+.bdwrap>.bd{flex:1 1 auto}
+.jump{position:absolute;right:max(8px,env(safe-area-inset-right,0px));bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:5}
+.jump[hidden]{display:none}
+.jump button{width:42px;height:42px;border-radius:50%;border:0;background:rgba(21,22,21,.6);color:#ffffff;font-size:1.25rem;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.ft{flex:none;padding-top:10px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--chrome);border-top:1px solid var(--line)}
 .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 .ft .wrap{gap:10px}
-.ft hr{display:none} /* 区切り線はコピー行の下端の線で代用 */
+.ft hr{margin:0}
 .copyrow{margin-top:0!important}
 .toast:empty{display:none}
 .btn.delall{background:var(--danger);color:#ffffff}
@@ -163,6 +165,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   <div class="rowhead"><h2 id="dayTitle">月曜日のアラーム</h2><span class="count" id="count"></span></div>
  </div></div>
 
+ <div class="bdwrap">
  <main class="bd"><div class="wrap">
   <section aria-live="polite">
     <div class="list" id="list"></div>
@@ -208,22 +211,27 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     </div>
   </details>
  </div></main>
+ <div class="jump" id="jump" hidden>
+  <button type="button" id="jumpTop" aria-label="一番上へ">↑</button>
+  <button type="button" id="jumpBottom" aria-label="一番下へ">↓</button>
+ </div>
+ </div>
 
  <div class="ft"><div class="wrap">
-  <div class="copyrow">
-    <label for="copyFrom" id="copyLabel">ほかの曜日からコピー</label>
-    <select id="copyFrom"></select>
-    <button class="sbtn" id="copyDay" type="button">コピー</button>
-  </div>
-
-  <hr>
-
   <form class="add" id="addForm">
     <label for="addTime" id="addLabel">アラーム追加：月曜日</label>
     <input type="time" id="addTime" value="09:00" required>
     <input type="text" id="addName" placeholder="アラーム名" maxlength="20">
     <button class="plus" type="submit" aria-label="追加">+</button>
   </form>
+
+  <hr>
+
+  <div class="copyrow">
+    <label for="copyFrom" id="copyLabel">ほかの曜日からコピー</label>
+    <select id="copyFrom"></select>
+    <button class="sbtn" id="copyDay" type="button">コピー</button>
+  </div>
 
   <div>
     <button class="btn" id="applyBtn" type="button">時計アプリに反映</button>
@@ -337,7 +345,10 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       if(hh&&hdx>70)showHome();else if(hh){home.classList.remove("drag");home.style.transform=""}
       hx=null},{passive:true});
   })();
+  /* 一覧がスクロールするときだけ「一番上へ／一番下へ」ボタンを出す */
+  function updJump(){const bd=document.querySelector(".bd"),j=$("jump");if(bd&&j)j.hidden=bd.scrollHeight<=bd.clientHeight+8}
   function render(){
+    requestAnimationFrame(updJump);
     renderDays();
     renderNext();
     const d=st.sel;
@@ -508,6 +519,11 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     }else{toast("クリップボードにコピーできなかったため、反映を中止しました。")}
   }
   $("applyBtn").addEventListener("click",()=>apply(false));
+  {const bd=document.querySelector(".bd");
+   $("jumpTop").addEventListener("click",()=>bd.scrollTo({top:0,behavior:"smooth"}));
+   $("jumpBottom").addEventListener("click",()=>bd.scrollTo({top:bd.scrollHeight,behavior:"smooth"}));
+   window.addEventListener("resize",updJump);
+   if(window.ResizeObserver)new ResizeObserver(updJump).observe(bd.querySelector(".wrap"));}
   $("resendAll").addEventListener("click",()=>{
     const n=st.alarms.filter(a=>!a.fresh).length;
     if(!confirm(`全${n}件を時計アプリに送り直します。件数が多いと数分かかります。よろしいですか？`))return;
