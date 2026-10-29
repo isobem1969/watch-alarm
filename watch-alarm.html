@@ -417,13 +417,15 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       delete a.fresh;a.time=time;a.label=label;
       st.removed=st.removed.filter(r=>r.key!==key(a));
       editing=null;st.dirty=true;render();
-      toast(`${a.day}曜日 ${time} ${label} を追加しました。`);return}
+      toast(`${a.day}曜日 ${time} ${label} を追加しました。`);
+      apply(false);return} /* 保存したら自動で時計アプリに反映 */
     const oldKey=key(a);
     if(!st.removed.some(r=>r.key===oldKey))st.removed.push({key:oldKey,day:a.day,time:a.time});
     a.time=time;a.label=label;
     st.removed=st.removed.filter(r=>r.key!==key(a));
     editing=null;st.dirty=true;render();
-    toast(`${a.day}曜日 ${time} ${label} に変更しました。反映すると、時計アプリの古いアラームを削除して新しい内容で作成します。`);
+    toast(`${a.day}曜日 ${time} ${label} に変更しました。`);
+    apply(false); /* 保存したら自動で時計アプリに反映 */
   });
   $("delAll").addEventListener("click",()=>{
     dropFresh();editing=null;armed=null;
@@ -468,6 +470,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     st.alarms.push({id:uid(),day:st.sel,time,label,on:true});
     st.removed=st.removed.filter(r=>r.key!==key({day:st.sel,time,label}));
     $("addName").value="";st.dirty=true;render();toast(`${st.sel}曜日 ${time} を追加しました。`);
+    apply(false); /* 追加したら自動で時計アプリに反映 */
   });
 
   function atISO(t){
