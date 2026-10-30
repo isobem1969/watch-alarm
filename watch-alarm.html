@@ -70,6 +70,12 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .home .none{margin-top:18px;font-size:1.2rem;color:var(--muted);font-weight:600}
 .home .go{margin-top:44px;border:0;background:var(--card);color:var(--fg);font:inherit;font-weight:700;font-size:1rem;padding:12px 22px;border-radius:22px;cursor:pointer}
 .home .hint{margin-top:10px;font-size:.85rem;color:var(--muted)}
+/* 反映方法の切り替え（都度修正／まとめて） */
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.toprow .back{padding:0}
+.seg{display:inline-flex;background:var(--card);border-radius:18px;padding:3px;gap:2px;flex:none}
+.seg button{border:0;background:none;color:var(--muted);font:inherit;font-weight:700;font-size:.85rem;padding:6px 12px;border-radius:15px;cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--accent);color:var(--on-accent)}
 .back{align-self:flex-start;border:0;background:none;color:var(--on);font:inherit;font-weight:700;font-size:.95rem;padding:0 0 6px;cursor:pointer}
 .watch{width:30px;height:30px;color:var(--fg);flex:none}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -151,7 +157,13 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 
 <div class="app">
  <div class="hd"><div class="wrap">
-  <button class="back" id="goHome" type="button">‹ 次のアラーム</button>
+  <div class="toprow">
+   <button class="back" id="goHome" type="button">‹ 次のアラーム</button>
+   <div class="seg" id="modeSeg" role="radiogroup" aria-label="時計アプリへの反映方法">
+    <button type="button" role="radio" data-mode="auto">都度修正</button>
+    <button type="button" role="radio" data-mode="batch">まとめて</button>
+   </div>
+  </div>
   <header>
     <div>
       <h1>Watch Alarm</h1>
@@ -396,7 +408,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
         try{if(ti.showPicker)ti.showPicker()}catch(err){}}
       toast("複製しました。時刻を変更して「保存」を押してください。");return}
     const t=e.target.closest("[data-tog]");
-    if(t){dropFresh();const a=st.alarms.find(x=>x.id===t.dataset.tog);if(!a){render();return}a.on=!a.on;st.dirty=true;armed=null;editing=null;render();apply(false);return} /* 切り替えたら自動で反映 */
+    if(t){dropFresh();const a=st.alarms.find(x=>x.id===t.dataset.tog);if(!a){render();return}a.on=!a.on;st.dirty=true;armed=null;editing=null;render();autoApply();return} /* 切り替えたら自動で反映（都度修正のとき） */
     const d=e.target.closest("[data-del]");
     if(d){dropFresh();const id=d.dataset.del;if(!st.alarms.some(x=>x.id===id)){render();return}
       if(armed!==id){armed=id;render();return}
@@ -404,7 +416,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       st.removed.push({key:key(a),day:a.day,time:a.time});
       st.alarms=st.alarms.filter(x=>x.id!==id);armed=null;st.dirty=true;render();
       toast("削除しました。");
-      apply(false)} /* 削除したら自動で反映 */
+      autoApply()} /* 削除したら自動で反映（都度修正のとき） */
   });
   $("list").addEventListener("submit",e=>{
     const f=e.target.closest("[data-form]");if(!f)return;
@@ -419,14 +431,14 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       st.removed=st.removed.filter(r=>r.key!==key(a));
       editing=null;st.dirty=true;render();
       toast(`${a.day}曜日 ${time} ${label} を追加しました。`);
-      apply(false);return} /* 保存したら自動で時計アプリに反映 */
+      autoApply();return} /* 保存したら自動で時計アプリに反映（都度修正のとき） */
     const oldKey=key(a);
     if(!st.removed.some(r=>r.key===oldKey))st.removed.push({key:oldKey,day:a.day,time:a.time});
     a.time=time;a.label=label;
     st.removed=st.removed.filter(r=>r.key!==key(a));
     editing=null;st.dirty=true;render();
     toast(`${a.day}曜日 ${time} ${label} に変更しました。`);
-    apply(false); /* 保存したら自動で時計アプリに反映 */
+    autoApply(); /* 保存したら自動で時計アプリに反映（都度修正のとき） */
   });
   $("delAll").addEventListener("click",()=>{
     dropFresh();editing=null;armed=null;
@@ -435,7 +447,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     for(const a of items){const k=key(a);if(!st.removed.some(r=>r.key===k))st.removed.push({key:k,day:a.day,time:a.time})}
     st.alarms=st.alarms.filter(a=>a.day!==d);st.dirty=true;render();
     toast(`${d}曜日のアラーム${items.length}件を削除しました。`);
-    apply(false); /* すべて削除したら自動で反映 */
+    autoApply(); /* すべて削除したら自動で反映（都度修正のとき） */
   });
   function setAll(on){
     dropFresh();editing=null;armed=null;
@@ -445,7 +457,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     for(const a of items)a.on=on;
     st.dirty=true;render();
     toast(`${d}曜日のアラーム${items.length}件をすべて${on?"ON":"OFF"}にしました。`);
-    apply(false); /* すべてON/OFFにしたら自動で反映 */
+    autoApply(); /* すべてON/OFFにしたら自動で反映（都度修正のとき） */
   }
   $("allOn").addEventListener("click",()=>setAll(true));
   $("allOff").addEventListener("click",()=>setAll(false));
@@ -464,7 +476,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     }
     editing=null;armed=null;if(added)st.dirty=true;render();
     toast(`${src}曜日から${added}件をコピーしました。`+(skipped?`同じ時刻・名前の${skipped}件はすでにあるため除きました。`:"")+"時刻や名前はタップで変更できます。");
-    if(added)apply(false); /* コピーしたら自動で反映 */
+    if(added)autoApply(); /* コピーしたら自動で反映（都度修正のとき） */
   });
   $("addForm").addEventListener("submit",e=>{
     e.preventDefault();
@@ -474,7 +486,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     st.alarms.push({id:uid(),day:st.sel,time,label,on:true});
     st.removed=st.removed.filter(r=>r.key!==key({day:st.sel,time,label}));
     $("addName").value="";st.dirty=true;render();toast(`${st.sel}曜日 ${time} を追加しました。`);
-    apply(false); /* 追加したら自動で時計アプリに反映 */
+    autoApply(); /* 追加したら自動で時計アプリに反映（都度修正のとき） */
   });
 
   function atISO(t){
@@ -523,6 +535,14 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     }else{toast("クリップボードにコピーできなかったため、反映を中止しました。")}
   }
   $("applyBtn").addEventListener("click",()=>apply(false));
+  /* 反映方法：auto＝操作のたびに自動で反映（都度修正）、batch＝「時計アプリに反映」でまとめて反映 */
+  if(st.mode!=="batch")st.mode="auto";
+  function autoApply(){if(st.mode==="auto")apply(false)}
+  function renderMode(){for(const b of document.querySelectorAll("#modeSeg [data-mode]"))b.setAttribute("aria-checked",String(b.dataset.mode===st.mode))}
+  $("modeSeg").addEventListener("click",e=>{const b=e.target.closest("[data-mode]");if(!b||b.dataset.mode===st.mode)return;
+    st.mode=b.dataset.mode;save();renderMode();
+    toast(st.mode==="auto"?"都度修正：操作のたびに時計アプリへ自動で反映します。"+(st.dirty?"未反映の変更は「時計アプリに反映」で送ってください。":""):"まとめて：変更をためておき、「時計アプリに反映」を押したときにまとめて反映します。");});
+  renderMode();
   {const bd=document.querySelector(".bd");
    $("jumpTop").addEventListener("click",()=>bd.scrollTo({top:0,behavior:"smooth"}));
    $("jumpBottom").addEventListener("click",()=>bd.scrollTo({top:bd.scrollHeight,behavior:"smooth"}));}
