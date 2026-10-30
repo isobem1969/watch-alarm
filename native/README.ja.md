@@ -39,10 +39,10 @@
 2. `WatchAlarm` と `WatchAlarmWatch` の両ターゲットで Signing & Capabilities → Team を自分の開発チームに指定し、Automatically manage signingを有効化。
 3. Bundle Identifierを変更する場合、iPhoneは `jp.isobem.watchalarm.native20261030`、Watchは `jp.isobem.watchalarm.native20261030.watchkitapp` を一組として変更。Watch側の `WKCompanionAppBundleIdentifier` もiPhoneのIDと一致させる。
 4. iPhoneとUltra 2をペアリングして、Xcodeに実機を認識させる。必要に応じて両端末でデベロッパモードを有効化。
-5. `WatchAlarm` スキームでiPhoneを選択してRun。WatchアプリはiPhoneアプリに埋め込み済み。Watchアプリのインストール状況をiPhoneのWatchアプリで確認する。必要なら `WatchAlarmWatch` スキームでペアリング済みUltra 2を選んでRun。
+5. `WatchAlarm` スキームでiPhoneを選択してRun。続いて **`WatchAlarmWatch` スキームで実機Ultra 2を選択して、Xcodeから直接Run** する。今回の無料開発署名では、iPhoneの「Watch」アプリ経由のインストールは拒否されたため、この経路では再試行しない。
 6. WatchでWatch Alarmを一度開き、「通知を許可」を押す。通知許可の要求はWatch側だけで行い、iPhoneから重複通知を予約しません。
 
-**実機へのインストールにはXcodeと適切な署名・プロビジョニングが必要です。** GitHub保存や署名なしビルドだけではUltra 2にインストールされません。個人用無料署名では有効期限や再署名などの制約があり得ます。App Store配布やTestFlightは今回の対象外です。
+**実機へのインストールにはXcodeと適切な署名・プロビジョニングが必要です。** GitHub保存や署名なしビルドだけではUltra 2にインストールされません。個人用無料署名では有効期限や再署名などの制約があります。今回の端末では、iPhoneのWatchアプリ経由でのWatch版インストールが `MIInstallerErrorDomain Code=111`（free provisioning profileではこのインストール元を許可しない）で拒否されたことを実ログで確認しました。無料署名ではMacのXcodeからWatchへ直接導入してください。App Store配布やTestFlightは今回の対象外です。
 
 ## 78件を壊さず移行する
 
@@ -87,7 +87,7 @@ xcodebuild -project native/WatchAlarm.xcodeproj -scheme WatchAlarmWatch \
 
 Xcodeプロジェクトは生成済みで同梱しています。再生成するときだけ `python3 native/Scripts/generate_project.py` を実行します（標準ライブラリのみ）。署名なしビルドはコンパイル・リンク・埋め込みの確認用です。
 
-実機で追加確認する項目: 78件の実JSONの件数、許可拒否→再許可、iPhone/Watchオフライン後の転送、再起動、通知テスト、消音・集中モード、CAF試聴、予約の補充、タイムゾーン変更。実機への転送や通知配信は本環境では未検証です。
+実機で追加確認する項目: 78件の実JSONの件数、許可拒否→再許可、iPhone/Watchオフライン後の転送、再起動、通知テスト、消音・集中モード、CAF試聴、予約の補充、タイムゾーン変更。追検証ではiPhoneへの署名付きインストール・起動は確認済みです。Ultra 2への直接導入はMac–Watch間のトンネル接続タイムアウトにより未完了で、Watchでの通知配信は未検証です。
 
 ## 構成
 

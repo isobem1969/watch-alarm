@@ -45,3 +45,11 @@ No main ref update, HTML changes, browser storage changes, or Clock alarm change
 - iPhone installation was confirmed by `devicectl` (`App installed`). Local code-signature verification passed, and both generated profiles include the intended devices. Profiles expire on 2026-11-06 (JST); this is a development install that needs renewal/re-signing.
 - First iPhone launch was denied by the device security service. Local signature/profile checks passed. The user then explicitly trusted their developer profile and confirmed that the iPhone app opened successfully.
 - Direct Ultra 2 installation timed out while establishing the network tunnel. Watch installation/execution is not yet confirmed.
+
+## Installation-failure diagnosis after OS update
+
+- Both physical devices were detected on iOS/watchOS 27.2. Watch Developer Mode was confirmed enabled both by the user and device metadata.
+- A fresh developer pairing with the Mac was completed by the user; the pairing timestamp updated. Direct Mac-to-Watch transfer still failed before app transfer while establishing the local-network tunnel.
+- A targeted iPhone Console stream captured the real reason for the iPhone Watch-app installation failure: `MIInstallerErrorDomain Code=111`, indicating that the watch bundle is authorized by a **free provisioning profile**, but installation **from this source is not allowed**. This is distinct from the Mac-to-Watch network tunnel timeout.
+- The earlier suggestion to install the free-signed Watch app through the iPhone Watch app was incorrect for this setup. The setup guide now directs free-signed installs through Xcode directly to the physical Watch. No repeated iPhone Watch-app installs are advised.
+- Targeted Console streaming was stopped after diagnosis. No raw device logs, identifiers, or profiles are published.
