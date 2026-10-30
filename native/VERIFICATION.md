@@ -35,3 +35,13 @@ Publication adds only `native/` on a new branch based on main commit `3ebb1e8c14
 - `apple-touch-icon.png`: `f95d42d28c2a12ffa9539ca587349396f5eaad45`
 
 No main ref update, HTML changes, browser storage changes, or Clock alarm changes are performed.
+
+## Device signing follow-up
+
+- Both targets were successfully signed using an existing local Apple Development identity and automatic provisioning (`BUILD SUCCEEDED`). No certificate, provisioning profile, device ID, or developer-team configuration is included in the repository.
+- The original sample bundle IDs were unavailable for registration. Defaults are now `jp.isobem.watchalarm.native20261030` and `jp.isobem.watchalarm.native20261030.watchkitapp`, with a matching companion bundle ID. This also keeps the new install separate from earlier Watch Alarm apps.
+- A paired Ultra 2 and a cable-connected iPhone were detected. Detection alone does not establish successful installation. Device-transfer results must be checked separately.
+
+- iPhone installation was confirmed by `devicectl` (`App installed`). Local code-signature verification passed, and both generated profiles include the intended devices. Profiles expire on 2026-11-06 (JST); this is a development install that needs renewal/re-signing.
+- First iPhone launch was denied by the device security service, reporting invalid signature, inadequate entitlements, or a developer profile not explicitly trusted. Local signature/profile checks passed; user-side developer-trust confirmation remains necessary. Successful app execution is not yet claimed.
+- Direct Ultra 2 installation timed out while establishing the network tunnel. Watch installation/execution is not yet confirmed.

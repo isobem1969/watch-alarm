@@ -37,7 +37,7 @@
 
 1. このブランチを取得して `native/WatchAlarm.xcodeproj` を開く。外部パッケージ、CocoaPods、XcodeGenは不要。
 2. `WatchAlarm` と `WatchAlarmWatch` の両ターゲットで Signing & Capabilities → Team を自分の開発チームに指定し、Automatically manage signingを有効化。
-3. Bundle Identifierを変更する場合、iPhoneは `jp.isobem.watchalarm`、Watchは `jp.isobem.watchalarm.watchkitapp` を一組として変更。Watch側の `WKCompanionAppBundleIdentifier` もiPhoneのIDと一致させる。
+3. Bundle Identifierを変更する場合、iPhoneは `jp.isobem.watchalarm.native20261030`、Watchは `jp.isobem.watchalarm.native20261030.watchkitapp` を一組として変更。Watch側の `WKCompanionAppBundleIdentifier` もiPhoneのIDと一致させる。
 4. iPhoneとUltra 2をペアリングして、Xcodeに実機を認識させる。必要に応じて両端末でデベロッパモードを有効化。
 5. `WatchAlarm` スキームでiPhoneを選択してRun。WatchアプリはiPhoneアプリに埋め込み済み。Watchアプリのインストール状況をiPhoneのWatchアプリで確認する。必要なら `WatchAlarmWatch` スキームでペアリング済みUltra 2を選んでRun。
 6. WatchでWatch Alarmを一度開き、「通知を許可」を押す。通知許可の要求はWatch側だけで行い、iPhoneから重複通知を予約しません。
