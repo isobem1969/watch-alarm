@@ -16,7 +16,7 @@
   --bg:#fbfbfa; --panel:#ffffff; --card:#f1f2f0; --line:#e3e4e1;
   --fg:#151615; --muted:#6c6f6a; --accent:#151615; --on-accent:#ffffff;
   --off:#c9cbc6; --warn:#a4561b; --ok:#2f6b3d;
-  --on:#007aff; --danger:#d70015; --sat-bg:#e3eefc; --sun-bg:#fbe5e6; --chrome:#ffffff; --body-bg:#d9dbd6; --body-card:#ffffff; --edge:#151615;
+  --on:#007aff; --danger:#d70015; --sat-bg:#e3eefc; --sun-bg:#fbe5e6; --chrome:#ffffff; --body-bg:#d9dbd6; --body-card:#ffffff; --edge:#151615; --jump-bg:rgba(21,22,21,.6); --jump-fg:#ffffff;
   --f-display:"Zen Kaku Gothic New",-apple-system,"Hiragino Sans",sans-serif;
   --f-body:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Zen Kaku Gothic New",sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -24,11 +24,11 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
-  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; --chrome:#161716; --body-bg:#111211; --body-card:#222422; --edge:#ffffff; color-scheme:dark}}
+  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; --chrome:#161716; --body-bg:#262825; --body-card:#383a37; --edge:#9a9d97; --jump-bg:rgba(238,239,236,.85); --jump-fg:#151615; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
-  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; --chrome:#161716; --body-bg:#111211; --body-card:#222422; --edge:#ffffff; color-scheme:dark}
+  --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; --chrome:#161716; --body-bg:#262825; --body-card:#383a37; --edge:#9a9d97; --jump-bg:rgba(238,239,236,.85); --jump-fg:#151615; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;margin:0;overflow:hidden}
@@ -41,7 +41,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .bdwrap>.bd{flex:1 1 auto}
 .jump{position:absolute;right:max(8px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:5}
 .bdwrap>.bd{padding-right:calc(max(8px,env(safe-area-inset-right,0px)) + 52px)} /* ボタンとカードが重ならないよう常に右に余白 */
-.jump button{width:42px;height:42px;border-radius:50%;border:0;background:rgba(21,22,21,.6);color:#ffffff;font-size:1.25rem;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.jump button{width:42px;height:42px;border-radius:50%;border:0;background:var(--jump-bg);color:var(--jump-fg);font-size:1.25rem;font-weight:700;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .ft{flex:none;padding-top:10px;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 10px);background:var(--chrome);border-top:1px solid var(--edge)}
 .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 .ft .wrap{gap:10px}
