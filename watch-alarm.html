@@ -396,14 +396,15 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
         try{if(ti.showPicker)ti.showPicker()}catch(err){}}
       toast("複製しました。時刻を変更して「保存」を押してください。");return}
     const t=e.target.closest("[data-tog]");
-    if(t){dropFresh();const a=st.alarms.find(x=>x.id===t.dataset.tog);if(!a){render();return}a.on=!a.on;st.dirty=true;armed=null;editing=null;render();return}
+    if(t){dropFresh();const a=st.alarms.find(x=>x.id===t.dataset.tog);if(!a){render();return}a.on=!a.on;st.dirty=true;armed=null;editing=null;render();apply(false);return} /* 切り替えたら自動で反映 */
     const d=e.target.closest("[data-del]");
     if(d){dropFresh();const id=d.dataset.del;if(!st.alarms.some(x=>x.id===id)){render();return}
       if(armed!==id){armed=id;render();return}
       const a=st.alarms.find(x=>x.id===id);
       st.removed.push({key:key(a),day:a.day,time:a.time});
       st.alarms=st.alarms.filter(x=>x.id!==id);armed=null;st.dirty=true;render();
-      toast("削除しました。反映すると時計アプリからも削除されます。")}
+      toast("削除しました。");
+      apply(false)} /* 削除したら自動で反映 */
   });
   $("list").addEventListener("submit",e=>{
     const f=e.target.closest("[data-form]");if(!f)return;
@@ -430,10 +431,11 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   $("delAll").addEventListener("click",()=>{
     dropFresh();editing=null;armed=null;
     const d=st.sel,items=st.alarms.filter(a=>a.day===d);if(!items.length){render();return}
-    if(!confirm(`${d}曜日のアラーム${items.length}件をすべて削除します。よろしいですか？\n（「時計アプリに反映」を押すと、時計アプリからも削除されます）`))return;
+    if(!confirm(`${d}曜日のアラーム${items.length}件をすべて削除します。よろしいですか？\n（時計アプリからも自動で削除されます）`))return;
     for(const a of items){const k=key(a);if(!st.removed.some(r=>r.key===k))st.removed.push({key:k,day:a.day,time:a.time})}
     st.alarms=st.alarms.filter(a=>a.day!==d);st.dirty=true;render();
-    toast(`${d}曜日のアラーム${items.length}件を削除しました。「時計アプリに反映」で時計アプリからも削除されます。`);
+    toast(`${d}曜日のアラーム${items.length}件を削除しました。`);
+    apply(false); /* すべて削除したら自動で反映 */
   });
   function setAll(on){
     dropFresh();editing=null;armed=null;
@@ -442,7 +444,8 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     if(!n){render();toast(`${d}曜日のアラームは、すでにすべて${on?"ON":"OFF"}です。`);return}
     for(const a of items)a.on=on;
     st.dirty=true;render();
-    toast(`${d}曜日のアラーム${items.length}件をすべて${on?"ON":"OFF"}にしました。「時計アプリに反映」で時計アプリにも反映されます。`);
+    toast(`${d}曜日のアラーム${items.length}件をすべて${on?"ON":"OFF"}にしました。`);
+    apply(false); /* すべてON/OFFにしたら自動で反映 */
   }
   $("allOn").addEventListener("click",()=>setAll(true));
   $("allOff").addEventListener("click",()=>setAll(false));
@@ -461,6 +464,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     }
     editing=null;armed=null;if(added)st.dirty=true;render();
     toast(`${src}曜日から${added}件をコピーしました。`+(skipped?`同じ時刻・名前の${skipped}件はすでにあるため除きました。`:"")+"時刻や名前はタップで変更できます。");
+    if(added)apply(false); /* コピーしたら自動で反映 */
   });
   $("addForm").addEventListener("submit",e=>{
     e.preventDefault();
