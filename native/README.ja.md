@@ -38,7 +38,7 @@
 1. このブランチを取得して `native/WatchAlarm.xcodeproj` を開く。外部パッケージ、CocoaPods、XcodeGenは不要。
 2. `WatchAlarm` と `WatchAlarmWatch` の両ターゲットで Signing & Capabilities → Team を自分の開発チームに指定し、Automatically manage signingを有効化。
 3. Bundle Identifierを変更する場合、iPhoneは `jp.isobem.watchalarm.native20261030`、Watchは `jp.isobem.watchalarm.native20261030.watchkitapp` を一組として変更。Watch側の `WKCompanionAppBundleIdentifier` もiPhoneのIDと一致させる。
-4. iPhoneとUltra 2をペアリングして、Xcodeに実機を認識させる。必要に応じて両端末でデベロッパモードを有効化。
+4. iPhoneとUltra 2をペアリングして、Xcodeに実機を認識させる。Mac・iPhone・Watchを同じWi-Fiネットワークに接続し、両端末のデベロッパモードを有効化する。Device Hubの「Pair Nearby Device」で待機し、Watchのデベロッパモード画面の下部からMacを選んで開発用ペアリングを行う。導入中はWatchを腕に着け、パスコードでロックを解除した状態を保つ。
 5. `WatchAlarm` スキームでiPhoneを選択してRun。続いて **`WatchAlarmWatch` スキームで実機Ultra 2を選択して、Xcodeから直接Run** する。今回の無料開発署名では、iPhoneの「Watch」アプリ経由のインストールは拒否されたため、この経路では再試行しない。
 6. WatchでWatch Alarmを一度開き、「通知を許可」を押す。通知許可の要求はWatch側だけで行い、iPhoneから重複通知を予約しません。
 
@@ -87,7 +87,7 @@ xcodebuild -project native/WatchAlarm.xcodeproj -scheme WatchAlarmWatch \
 
 Xcodeプロジェクトは生成済みで同梱しています。再生成するときだけ `python3 native/Scripts/generate_project.py` を実行します（標準ライブラリのみ）。署名なしビルドはコンパイル・リンク・埋め込みの確認用です。
 
-実機で追加確認する項目: 78件の実JSONの件数、許可拒否→再許可、iPhone/Watchオフライン後の転送、再起動、通知テスト、消音・集中モード、CAF試聴、予約の補充、タイムゾーン変更。追検証ではiPhoneへの署名付きインストール・起動は確認済みです。Ultra 2への直接導入はMac–Watch間のトンネル接続タイムアウトにより未完了で、Watchでの通知配信は未検証です。
+実機で追加確認する項目: 78件の実JSONの件数、許可拒否→再許可、iPhone/Watchオフライン後の転送、再起動、通知テスト、消音・集中モード、CAF試聴、予約の補充、タイムゾーン変更。追検証ではiPhoneへの署名付きインストール・起動は確認済みです。MacとWatchを同じWi-Fiに接続しWatchのロックを解除した後、Ultra 2への直接インストールも成功しました。Watchアプリの起動と10秒後のテスト通知の到着も確認しました（通知到着はユーザー確認。音の実再生と実際の78件の転送・予約は別途確認が必要です）。
 
 ## 構成
 
