@@ -21,7 +21,7 @@ xcodebuild -project native/WatchAlarm.xcodeproj -scheme WatchAlarm -configuratio
 
 - `UNNotificationSound(named:)` was confirmed **unavailable on watchOS** by actual compiler error and installed SDK header (`soundNamed: ... API_UNAVAILABLE(watchos, tvos)`). Final app uses `.default` for Watch notifications. CAF playback is manual foreground preview only. No custom Watch notification sound or automatic background chime is claimed.
 - Original Haneda CAF could not be retrieved: specified /mnt/data path absent; referenced conversation returned no attachments. Not included, not auditioned, actual duration not measured. An optional resource slot and validated CAF transfer/foreground-preview path are implemented.
-- No physical iPhone/Ultra 2 installation, signing, WatchConnectivity end-to-end delivery, actual sound output, notification permission interaction, notification firing, or OS pending-limit behavior was tested.
+- Follow-up: signed builds passed, iPhone installation succeeded, and the user confirmed iPhone launch after developer trust. Ultra 2 installation, WatchConnectivity end-to-end delivery, actual sound output, notification permission interaction, notification firing, and OS pending-limit behavior remain unverified unless noted below.
 - No access to the user's browser-local 78 real settings. Tests use synthetic 78-entry data; existing HTML copy JSON is required for migration.
 - Simulator service was unavailable in this execution environment. Generic simulator compilation still succeeded; no simulator launch was attempted.
 - Xcode reports the benign App Intents metadata warning (no AppIntents.framework dependency). No App Intents features are used.
@@ -43,5 +43,5 @@ No main ref update, HTML changes, browser storage changes, or Clock alarm change
 - A paired Ultra 2 and a cable-connected iPhone were detected. Detection alone does not establish successful installation. Device-transfer results must be checked separately.
 
 - iPhone installation was confirmed by `devicectl` (`App installed`). Local code-signature verification passed, and both generated profiles include the intended devices. Profiles expire on 2026-11-06 (JST); this is a development install that needs renewal/re-signing.
-- First iPhone launch was denied by the device security service, reporting invalid signature, inadequate entitlements, or a developer profile not explicitly trusted. Local signature/profile checks passed; user-side developer-trust confirmation remains necessary. Successful app execution is not yet claimed.
+- First iPhone launch was denied by the device security service. Local signature/profile checks passed. The user then explicitly trusted their developer profile and confirmed that the iPhone app opened successfully.
 - Direct Ultra 2 installation timed out while establishing the network tunnel. Watch installation/execution is not yet confirmed.
