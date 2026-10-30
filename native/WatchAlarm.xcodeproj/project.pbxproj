@@ -1,0 +1,346 @@
+// !$*UTF8*$!
+{
+archiveVersion = 1;
+classes = {
+
+};
+objectVersion = 56;
+objects = {
+0EF2A6A6F95DA512F6CEB597 = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Shared/AlarmDocument.swift";
+sourceTree = "<group>";
+};
+924AD172A0A4F6B9757D5EBB = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Shared/Connectivity.swift";
+sourceTree = "<group>";
+};
+90FD63238AD934E7033AE282 = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Shared/Chime.swift";
+sourceTree = "<group>";
+};
+29611DF08BF30D4239BBBC95 = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "iPhone/PhoneApp.swift";
+sourceTree = "<group>";
+};
+BAB4C789E736B80A74E67FDF = {
+isa = PBXFileReference;
+lastKnownFileType = sourcecode.swift;
+path = "Watch/WatchApp.swift";
+sourceTree = "<group>";
+};
+0189424A5A60FED329FA868E = {
+isa = PBXFileReference;
+lastKnownFileType = folder;
+path = ChimeAssets;
+sourceTree = "<group>";
+};
+A0D330B842295EE21981B618 = {
+isa = PBXFileReference;
+explicitFileType = wrapper.application;
+includeInIndex = 0;
+path = "WatchAlarm.app";
+sourceTree = BUILT_PRODUCTS_DIR;
+};
+BFE1A6812BBCF69624B79F1D = {
+isa = PBXFileReference;
+explicitFileType = wrapper.application;
+includeInIndex = 0;
+path = "WatchAlarmWatch.app";
+sourceTree = BUILT_PRODUCTS_DIR;
+};
+FBDC4F23F93125BBEEAE800C = {
+isa = PBXGroup;
+children = (A0D330B842295EE21981B618, BFE1A6812BBCF69624B79F1D,);
+name = Products;
+sourceTree = "<group>";
+};
+64292B1C2B2E13EAD8788FC8 = {
+isa = PBXGroup;
+children = (0EF2A6A6F95DA512F6CEB597, 924AD172A0A4F6B9757D5EBB, 90FD63238AD934E7033AE282, 29611DF08BF30D4239BBBC95, BAB4C789E736B80A74E67FDF, 0189424A5A60FED329FA868E, FBDC4F23F93125BBEEAE800C,);
+sourceTree = "<group>";
+};
+D799BAE6088A90139B415FCC = {
+isa = PBXContainerItemProxy;
+containerPortal = 98F54143AB4E86B28C3AFEE0;
+proxyType = 1;
+remoteGlobalIDString = 6E6816A757266B5E0356C82F;
+remoteInfo = WatchAlarmWatch;
+};
+E9FAD0C6CD43534327C0AF90 = {
+isa = PBXTargetDependency;
+target = 6E6816A757266B5E0356C82F;
+targetProxy = D799BAE6088A90139B415FCC;
+};
+C66824F4D2BDEAB134DE5DC5 = {
+isa = PBXBuildFile;
+fileRef = 0EF2A6A6F95DA512F6CEB597;
+};
+3A0347ED3812548B91750FFE = {
+isa = PBXBuildFile;
+fileRef = 924AD172A0A4F6B9757D5EBB;
+};
+A7ACAD879C115E7047298791 = {
+isa = PBXBuildFile;
+fileRef = 90FD63238AD934E7033AE282;
+};
+4D2C5BB39F0D82F0E8F77EBF = {
+isa = PBXBuildFile;
+fileRef = BAB4C789E736B80A74E67FDF;
+};
+34432BEA59AFC27E454ABCC8 = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (C66824F4D2BDEAB134DE5DC5, 3A0347ED3812548B91750FFE, A7ACAD879C115E7047298791, 4D2C5BB39F0D82F0E8F77EBF,);
+runOnlyForDeploymentPostprocessing = 0;
+};
+AEC72C79C1E5D3188D2958B0 = {
+isa = PBXBuildFile;
+fileRef = 0189424A5A60FED329FA868E;
+};
+5AF41230139E25D0C34DEA03 = {
+isa = PBXResourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (AEC72C79C1E5D3188D2958B0,);
+runOnlyForDeploymentPostprocessing = 0;
+};
+7DAB690A41B6EAE2B503171F = {
+isa = XCBuildConfiguration;
+buildSettings = {
+CLANG_ENABLE_MODULES = YES;
+SWIFT_VERSION = 5.0;
+CODE_SIGN_STYLE = Automatic;
+CURRENT_PROJECT_VERSION = 1;
+MARKETING_VERSION = 1.0;
+GENERATE_INFOPLIST_FILE = YES;
+PRODUCT_NAME = "$(TARGET_NAME)";
+INFOPLIST_KEY_CFBundleDisplayName = "Watch Alarm";
+SWIFT_EMIT_LOC_STRINGS = YES;
+ENABLE_USER_SCRIPT_SANDBOXING = YES;
+SDKROOT = watchos;
+SUPPORTED_PLATFORMS = "watchos watchsimulator";
+WATCHOS_DEPLOYMENT_TARGET = 10.0;
+TARGETED_DEVICE_FAMILY = 4;
+PRODUCT_BUNDLE_IDENTIFIER = jp.isobem.watchalarm.watchkitapp;
+INFOPLIST_KEY_WKCompanionAppBundleIdentifier = jp.isobem.watchalarm;
+INFOPLIST_KEY_WKApplication = YES;
+SKIP_INSTALL = YES;
+SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+DEBUG_INFORMATION_FORMAT = "dwarf";
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+};
+name = Debug;
+};
+76AB338FCABCF6BE6B20271D = {
+isa = XCBuildConfiguration;
+buildSettings = {
+CLANG_ENABLE_MODULES = YES;
+SWIFT_VERSION = 5.0;
+CODE_SIGN_STYLE = Automatic;
+CURRENT_PROJECT_VERSION = 1;
+MARKETING_VERSION = 1.0;
+GENERATE_INFOPLIST_FILE = YES;
+PRODUCT_NAME = "$(TARGET_NAME)";
+INFOPLIST_KEY_CFBundleDisplayName = "Watch Alarm";
+SWIFT_EMIT_LOC_STRINGS = YES;
+ENABLE_USER_SCRIPT_SANDBOXING = YES;
+SDKROOT = watchos;
+SUPPORTED_PLATFORMS = "watchos watchsimulator";
+WATCHOS_DEPLOYMENT_TARGET = 10.0;
+TARGETED_DEVICE_FAMILY = 4;
+PRODUCT_BUNDLE_IDENTIFIER = jp.isobem.watchalarm.watchkitapp;
+INFOPLIST_KEY_WKCompanionAppBundleIdentifier = jp.isobem.watchalarm;
+INFOPLIST_KEY_WKApplication = YES;
+SKIP_INSTALL = YES;
+SWIFT_OPTIMIZATION_LEVEL = "-O";
+DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+};
+name = Release;
+};
+884FDEDB99CA9EE348D350F6 = {
+isa = XCConfigurationList;
+buildConfigurations = (7DAB690A41B6EAE2B503171F, 76AB338FCABCF6BE6B20271D,);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
+6E6816A757266B5E0356C82F = {
+isa = PBXNativeTarget;
+buildConfigurationList = 884FDEDB99CA9EE348D350F6;
+buildPhases = (34432BEA59AFC27E454ABCC8, 5AF41230139E25D0C34DEA03,);
+buildRules = ();
+dependencies = ();
+name = WatchAlarmWatch;
+productName = WatchAlarmWatch;
+productReference = BFE1A6812BBCF69624B79F1D;
+productType = "com.apple.product-type.application";
+};
+E6EEF765F38A03CC946850FC = {
+isa = PBXBuildFile;
+fileRef = 0EF2A6A6F95DA512F6CEB597;
+};
+87D881674094D22043A6C9FF = {
+isa = PBXBuildFile;
+fileRef = 924AD172A0A4F6B9757D5EBB;
+};
+5484C38B1F2C39E537A0B9EE = {
+isa = PBXBuildFile;
+fileRef = 90FD63238AD934E7033AE282;
+};
+36A17305D6796C589BA79932 = {
+isa = PBXBuildFile;
+fileRef = 29611DF08BF30D4239BBBC95;
+};
+0368125B9329617D81893096 = {
+isa = PBXSourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (E6EEF765F38A03CC946850FC, 87D881674094D22043A6C9FF, 5484C38B1F2C39E537A0B9EE, 36A17305D6796C589BA79932,);
+runOnlyForDeploymentPostprocessing = 0;
+};
+AB50C7CE0C8F6BCE3D132B74 = {
+isa = PBXBuildFile;
+fileRef = 0189424A5A60FED329FA868E;
+};
+1CFA9D81F25D21A2D923DF75 = {
+isa = PBXResourcesBuildPhase;
+buildActionMask = 2147483647;
+files = (AB50C7CE0C8F6BCE3D132B74,);
+runOnlyForDeploymentPostprocessing = 0;
+};
+265BC4FD28C528304F1AC67C = {
+isa = PBXBuildFile;
+fileRef = BFE1A6812BBCF69624B79F1D;
+settings = {
+ATTRIBUTES = (RemoveHeadersOnCopy,);
+};
+};
+34EC437E5837D0D5F6E620DD = {
+isa = PBXCopyFilesBuildPhase;
+buildActionMask = 2147483647;
+dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+dstSubfolderSpec = 16;
+files = (265BC4FD28C528304F1AC67C,);
+name = "Embed Watch Content";
+runOnlyForDeploymentPostprocessing = 0;
+};
+4345F9C761DE0B00E35E755C = {
+isa = XCBuildConfiguration;
+buildSettings = {
+CLANG_ENABLE_MODULES = YES;
+SWIFT_VERSION = 5.0;
+CODE_SIGN_STYLE = Automatic;
+CURRENT_PROJECT_VERSION = 1;
+MARKETING_VERSION = 1.0;
+GENERATE_INFOPLIST_FILE = YES;
+PRODUCT_NAME = "$(TARGET_NAME)";
+INFOPLIST_KEY_CFBundleDisplayName = "Watch Alarm";
+SWIFT_EMIT_LOC_STRINGS = YES;
+ENABLE_USER_SCRIPT_SANDBOXING = YES;
+SDKROOT = iphoneos;
+SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+TARGETED_DEVICE_FAMILY = 1;
+PRODUCT_BUNDLE_IDENTIFIER = jp.isobem.watchalarm;
+INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+DEBUG_INFORMATION_FORMAT = "dwarf";
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+};
+name = Debug;
+};
+D4D47ABCC7921ABAC68B9BC1 = {
+isa = XCBuildConfiguration;
+buildSettings = {
+CLANG_ENABLE_MODULES = YES;
+SWIFT_VERSION = 5.0;
+CODE_SIGN_STYLE = Automatic;
+CURRENT_PROJECT_VERSION = 1;
+MARKETING_VERSION = 1.0;
+GENERATE_INFOPLIST_FILE = YES;
+PRODUCT_NAME = "$(TARGET_NAME)";
+INFOPLIST_KEY_CFBundleDisplayName = "Watch Alarm";
+SWIFT_EMIT_LOC_STRINGS = YES;
+ENABLE_USER_SCRIPT_SANDBOXING = YES;
+SDKROOT = iphoneos;
+SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+TARGETED_DEVICE_FAMILY = 1;
+PRODUCT_BUNDLE_IDENTIFIER = jp.isobem.watchalarm;
+INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+SWIFT_OPTIMIZATION_LEVEL = "-O";
+DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+};
+name = Release;
+};
+1CFDE86BD8F4E954FF987C16 = {
+isa = XCConfigurationList;
+buildConfigurations = (4345F9C761DE0B00E35E755C, D4D47ABCC7921ABAC68B9BC1,);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
+66538DE17ED25D9208CB8AF3 = {
+isa = PBXNativeTarget;
+buildConfigurationList = 1CFDE86BD8F4E954FF987C16;
+buildPhases = (0368125B9329617D81893096, 1CFA9D81F25D21A2D923DF75, 34EC437E5837D0D5F6E620DD,);
+buildRules = ();
+dependencies = (E9FAD0C6CD43534327C0AF90,);
+name = WatchAlarm;
+productName = WatchAlarm;
+productReference = A0D330B842295EE21981B618;
+productType = "com.apple.product-type.application";
+};
+89E1FD6268CC0F221A2BE178 = {
+isa = XCBuildConfiguration;
+buildSettings = {
+CLANG_ENABLE_MODULES = YES;
+SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+DEBUG_INFORMATION_FORMAT = "dwarf";
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+};
+name = Debug;
+};
+E6DE6C99132752C914FEF632 = {
+isa = XCBuildConfiguration;
+buildSettings = {
+CLANG_ENABLE_MODULES = YES;
+SWIFT_OPTIMIZATION_LEVEL = "-O";
+DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+};
+name = Release;
+};
+BC7E287B75C6D3E574547D08 = {
+isa = XCConfigurationList;
+buildConfigurations = (89E1FD6268CC0F221A2BE178, E6DE6C99132752C914FEF632,);
+defaultConfigurationIsVisible = 0;
+defaultConfigurationName = Release;
+};
+98F54143AB4E86B28C3AFEE0 = {
+isa = PBXProject;
+attributes = {
+BuildIndependentTargetsInParallel = YES;
+LastUpgradeCheck = 1600;
+};
+buildConfigurationList = BC7E287B75C6D3E574547D08;
+compatibilityVersion = "Xcode 14.0";
+developmentRegion = ja;
+hasScannedForEncodings = 0;
+knownRegions = (ja, en, Base);
+mainGroup = 64292B1C2B2E13EAD8788FC8;
+productRefGroup = FBDC4F23F93125BBEEAE800C;
+projectDirPath = "";
+projectRoot = "";
+targets = (66538DE17ED25D9208CB8AF3, 6E6816A757266B5E0356C82F,);
+};
+};
+rootObject = 98F54143AB4E86B28C3AFEE0;
+}
