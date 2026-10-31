@@ -61,7 +61,7 @@ header{display:flex;justify-content:space-between;align-items:flex-start;gap:12p
 h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-height:1.2;letter-spacing:.01em}
 .sub{color:var(--muted);font-size:.85rem}
 /* 次のアラーム画面（最初に表示。左へスワイプで設定画面へ） */
-.home{position:fixed;inset:0;z-index:20;height:100dvh;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+.home{position:fixed;inset:0;z-index:20;height:100dvh;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;text-align:center;
   padding:calc(env(safe-area-inset-top,0px) + 24px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 24px) max(16px,env(safe-area-inset-left,0px));
   transition:transform .3s ease;touch-action:pan-y;will-change:transform}
 .home.away{transform:translateX(-100%)}
@@ -75,6 +75,16 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .home .none{margin-top:18px;font-size:1.2rem;color:var(--muted);font-weight:600}
 .home .go{margin-top:44px;border:0;background:var(--card);color:var(--fg);font:inherit;font-weight:700;font-size:1rem;padding:12px 22px;border-radius:22px;cursor:pointer}
 .home .hint{margin-top:10px;font-size:.85rem;color:var(--muted)}
+/* 最初の画面：全アラームの一括設定 */
+.home .bulk{margin-top:28px;width:min(100%,360px);background:var(--card);border-radius:18px;padding:14px 16px;text-align:left}
+.home .bulk h2{margin:0 0 10px;font-family:var(--f-display);font-size:1rem;font-weight:700}
+.home .bulk .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.home .bulk .lab{font-weight:700}
+.home .bulk .seg{background:var(--panel)}
+.home .bulk .run{margin-top:12px;width:100%;border:0;border-radius:20px;padding:11px 14px;font:inherit;font-weight:700;cursor:pointer;background:var(--apply-bg);color:var(--apply-fg);box-shadow:var(--hl-ring)}
+.home .bulk .note{margin-top:8px;font-size:.78rem;color:var(--muted);line-height:1.5}
+.home .bulk .msg{margin-top:8px;font-size:.85rem;font-weight:700;color:var(--warn)}
+.home .bulk .msg:empty{display:none}
 /* 反映方法の切り替え（都度修正／まとめて） */
 .toprow{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .toprow .back{padding:0}
@@ -160,6 +170,19 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   <div id="nxBody"></div>
   <button class="go" id="goSettings" type="button">曜日ごとの設定へ ›</button>
   <div class="hint">左へスワイプしても進めます</div>
+  <div class="bulk" id="bulkBox">
+    <h2>全アラームの一括設定</h2>
+    <div class="row">
+      <span class="lab">スヌーズ</span>
+      <div class="seg" id="snoozeSeg" role="radiogroup" aria-label="スヌーズ">
+        <button type="button" role="radio" data-snooze="on">オン</button>
+        <button type="button" role="radio" data-snooze="off">オフ</button>
+      </div>
+    </div>
+    <button class="run" id="bulkRun" type="button">全アラームに一括適用</button>
+    <div class="msg" id="bulkMsg"></div>
+    <div class="note">一括適用は、Watch Alarmで管理しているアラームを時計アプリからいったん削除し、作り直します（2回に分けて実行します）。サウンドとスヌーズの時間はショートカットから指定できないため、時計アプリで個別に設定してください。</div>
+  </div>
 </section>
 
 <div class="app">
@@ -275,6 +298,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   if(!st||!Array.isArray(st.alarms)) st=JSON.parse(JSON.stringify(sample));
   if(!Array.isArray(st.removed)) st.removed=[];
   if(!DAYS.includes(st.sel)) st.sel="月";
+  if(typeof st.snooze!=="boolean") st.snooze=true; /* スヌーズ（全アラーム共通） */
   st.alarms=st.alarms.filter(x=>!x.fresh);
   (function cleanDupNames(){
     const strip=s=>String(s||"アラーム").replace(/（複製\d*）/g,"").trim()||"アラーム";
@@ -510,7 +534,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     for(const r of st.removed)if(!curKeys.has(r.key))rm.set(r.key,{key:r.key,day:r.day,time:r.time});
     if(syn)for(const k in syn)if(!curKeys.has(k)&&!rm.has(k))rm.set(k,{key:k,day:syn[k].day,time:syn[k].time});
     return {version:1,
-      alarms:send.map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],[EN[DAYS.indexOf(a.day)]]:"1",time:atISO(a.time),label:a.label,state:a.on?"ON":"OFF",...(a.on?{on:"1"}:{})})),
+      alarms:send.map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],[EN[DAYS.indexOf(a.day)]]:"1",time:atISO(a.time),label:a.label,state:a.on?"ON":"OFF",...(a.on?{on:"1"}:{}),snooze:!!st.snooze})),
       removed:[...rm.values()],
       /* ウィジェット用：ONのアラーム全件（曜日と時刻） */
       widget:JSON.stringify({on:cur.filter(a=>a.on).map(a=>({day:a.day,time:a.time}))})};
@@ -521,8 +545,12 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     if(!full&&!pl.alarms.length&&!pl.removed.length){
       st.dirty=false;st.removed=[];render();
       toast("前回の反映から変更はありません。時計アプリと食い違う場合は「全件を送り直す」を押してください。");return}
-    const json=JSON.stringify(pl);
     const msg=`${pl.alarms.length}件の作成・ON/OFFと${pl.removed.length}件の削除を時計アプリに送ります。`;
+    sendPayload(pl,()=>{st.dirty=false;st.removed=[];st.synced=snapOf(st.alarms);render();toast(msg)},toast);
+  }
+  /* データをクリップボードに入れてショートカットを起動する（onSent：起動直前の処理、onFail：失敗の表示） */
+  function sendPayload(pl,onSent,onFail){
+    const json=JSON.stringify(pl);
     const url="shortcuts://run-shortcut?name="+encodeURIComponent(SHORTCUT);
     let ok=false;
     try{
@@ -533,14 +561,45 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       ok=document.execCommand("copy");
       document.body.removeChild(ta);
     }catch(err){ok=false}
-    const go=()=>{st.dirty=false;st.removed=[];st.synced=snapOf(st.alarms);render();
-      toast(msg);
-      location.href=url;};
+    const go=()=>{onSent();location.href=url;};
     if(ok){go();return}
     if(navigator.clipboard&&navigator.clipboard.writeText){
-      navigator.clipboard.writeText(json).then(go,()=>toast("クリップボードにコピーできなかったため、反映を中止しました。もう一度押してください。"));
-    }else{toast("クリップボードにコピーできなかったため、反映を中止しました。")}
+      navigator.clipboard.writeText(json).then(go,()=>onFail("クリップボードにコピーできなかったため、反映を中止しました。もう一度押してください。"));
+    }else{onFail("クリップボードにコピーできなかったため、反映を中止しました。")}
   }
+  /* 全アラームの一括設定（スヌーズ）
+     1回目：管理中のアラームを時計アプリからすべて削除 → 2回目：ONのアラームを今の設定で作り直す */
+  function renderBulk(){
+    for(const b of document.querySelectorAll("#snoozeSeg button"))
+      b.setAttribute("aria-checked",String((b.dataset.snooze==="on")===st.snooze));
+    const run=$("bulkRun");
+    run.textContent=st.bulk==="recreate"?"続けて作り直す（2/2）":"全アラームに一括適用";
+    $("bulkMsg").textContent=st.bulk==="recreate"?"削除が終わりました。「続けて作り直す（2/2）」を押してください。":"";
+  }
+  $("snoozeSeg").addEventListener("click",e=>{
+    const b=e.target.closest("button[data-snooze]");if(!b)return;
+    st.snooze=b.dataset.snooze==="on";save();renderBulk();
+  });
+  $("bulkRun").addEventListener("click",()=>{
+    dropFresh();editing=null;armed=null;
+    const cur=st.alarms.filter(a=>!a.fresh);
+    const bulkFail=m=>{$("bulkMsg").textContent=m};
+    if(st.bulk==="recreate"){
+      /* 2回目：ONのアラームを今のスヌーズ設定で作り直す */
+      const pl=payload(true);
+      sendPayload(pl,()=>{st.bulk=null;st.dirty=false;st.removed=[];st.synced=snapOf(st.alarms);save();renderBulk();render()},bulkFail);
+      return;
+    }
+    if(!cur.length){bulkFail("アラームがありません。");return}
+    if(!confirm(`全${cur.length}件のアラームを、スヌーズ${st.snooze?"オン":"オフ"}で作り直します。\n1回目で時計アプリから削除し、ページに戻ったら「続けて作り直す（2/2）」を押して作り直します。よろしいですか？`))return;
+    /* 1回目：管理中のアラームをすべて削除 */
+    const rm=new Map();
+    for(const a of cur)rm.set(key(a),{key:key(a),day:a.day,time:a.time});
+    if(st.synced)for(const k in st.synced)if(!rm.has(k))rm.set(k,{key:k,day:st.synced[k].day,time:st.synced[k].time});
+    const pl={version:1,alarms:[],removed:[...rm.values()],widget:JSON.stringify({on:cur.filter(a=>a.on).map(a=>({day:a.day,time:a.time}))})};
+    sendPayload(pl,()=>{st.bulk="recreate";save();renderBulk()},bulkFail);
+  });
+  renderBulk();
   $("applyBtn").addEventListener("click",()=>apply(false));
   /* 反映方法：auto＝操作のたびに自動で反映（都度修正）、batch＝「時計アプリに反映」でまとめて反映 */
   if(st.mode!=="batch")st.mode="auto";
