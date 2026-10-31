@@ -86,7 +86,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .day{font-family:var(--f-display);font-weight:700;font-size:1rem;border:1.5px solid transparent;background:var(--card);
   color:var(--fg);border-radius:12px;padding:12px 0;cursor:pointer;position:relative}
-.day[aria-selected="true"]{border-color:var(--fg);background:var(--panel)}
+.day[aria-selected="true"]{border-color:var(--fg);background:var(--panel);box-shadow:inset 0 0 0 2.5px var(--fg)} /* 選択中の枠を太く（1.5px＋2.5px） */
 .day.sun{color:var(--danger);background:var(--sun-bg)}
 .day.sat{color:var(--on);background:var(--sat-bg)}
 .day.today{color:#1c1c1e;background:#ffd60a}
