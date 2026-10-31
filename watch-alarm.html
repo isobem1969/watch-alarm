@@ -17,7 +17,7 @@
   --fg:#151615; --muted:#6c6f6a; --accent:#151615; --on-accent:#ffffff;
   --off:#c9cbc6; --warn:#a4561b; --ok:#2f6b3d;
   --on:#007aff; --danger:#d70015; --sat-bg:#e3eefc; --sun-bg:#fbe5e6; --chrome:#ffffff; --body-bg:#d9dbd6; --body-card:#ffffff; --edge:#151615; --jump-bg:rgba(21,22,21,.6); --jump-fg:#ffffff;
-  --back-fg:var(--on); --seg-bg:var(--accent); --seg-fg:var(--on-accent); --copy-bg:var(--accent); --copy-fg:var(--on-accent); --apply-bg:var(--accent); --apply-fg:var(--on-accent);
+  --back-fg:var(--on); --seg-bg:#ffeb99; --seg-fg:#151615; --copy-bg:#f9cbd6; --copy-fg:#151615; --apply-bg:#ffeb99; --apply-fg:#151615; --hl-ring:inset 0 0 0 1.5px #151615;
   --f-display:"Zen Kaku Gothic New",-apple-system,"Hiragino Sans",sans-serif;
   --f-body:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","Zen Kaku Gothic New",sans-serif;
   --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
@@ -26,12 +26,12 @@
   --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
   --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; --chrome:#161716; --body-bg:#262825; --body-card:#383a37; --edge:#9a9d97; --jump-bg:rgba(238,239,236,.85); --jump-fg:#151615;
-  --back-fg:#ffd60a; --seg-bg:#ffd60a; --seg-fg:#151615; --copy-bg:#ffd60a; --copy-fg:#151615; --apply-bg:#f9cbd6; --apply-fg:#151615; color-scheme:dark}}
+  --back-fg:#ffd60a; --seg-bg:#ffd60a; --seg-fg:#151615; --copy-bg:#ffd60a; --copy-fg:#151615; --apply-bg:#f9cbd6; --apply-fg:#151615; --hl-ring:none; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#111211; --panel:#181918; --card:#222422; --line:#2e302d;
   --fg:#eeefec; --muted:#9a9d97; --accent:#eeefec; --on-accent:#111211;
   --off:#4a4d48; --warn:#e0975c; --ok:#7fc28f; --on:#0a84ff; --danger:#ff6961; --sat-bg:#1b2a3d; --sun-bg:#3a1f22; --chrome:#161716; --body-bg:#262825; --body-card:#383a37; --edge:#9a9d97; --jump-bg:rgba(238,239,236,.85); --jump-fg:#151615;
-  --back-fg:#ffd60a; --seg-bg:#ffd60a; --seg-fg:#151615; --copy-bg:#ffd60a; --copy-fg:#151615; --apply-bg:#f9cbd6; --apply-fg:#151615; color-scheme:dark}
+  --back-fg:#ffd60a; --seg-bg:#ffd60a; --seg-fg:#151615; --copy-bg:#ffd60a; --copy-fg:#151615; --apply-bg:#f9cbd6; --apply-fg:#151615; --hl-ring:none; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55;margin:0;overflow:hidden}
@@ -50,8 +50,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .ft .wrap{gap:10px}
 .ft hr{margin:0}
 .copyrow{margin-top:0!important}
-#copyDay{background:var(--copy-bg);color:var(--copy-fg)}
-#applyBtn{background:var(--apply-bg);color:var(--apply-fg)}
+#copyDay{background:var(--copy-bg);color:var(--copy-fg);box-shadow:var(--hl-ring)}
+#applyBtn{background:var(--apply-bg);color:var(--apply-fg);box-shadow:var(--hl-ring)}
 .toast:empty{display:none}
 .btn.delall{background:var(--danger);color:#ffffff}
 #allRow[hidden]{display:none}
@@ -80,7 +80,7 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .toprow .back{padding:0}
 .seg{display:inline-flex;background:var(--card);border-radius:18px;padding:3px;gap:2px;flex:none}
 .seg button{border:0;background:none;color:var(--muted);font:inherit;font-weight:700;font-size:.85rem;padding:6px 12px;border-radius:15px;cursor:pointer}
-.seg button[aria-checked="true"]{background:var(--seg-bg);color:var(--seg-fg)}
+.seg button[aria-checked="true"]{background:var(--seg-bg);color:var(--seg-fg);box-shadow:var(--hl-ring)}
 .back{align-self:flex-start;border:0;background:none;color:var(--back-fg);font:inherit;font-weight:700;font-size:.95rem;padding:0 0 6px;cursor:pointer}
 .watch{width:30px;height:30px;color:var(--fg);flex:none}
 .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -129,7 +129,8 @@ hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 #addTime{color:var(--danger)}
 #addName{color:var(--on)}
 #addName::placeholder{color:var(--on);opacity:.75;font-weight:700}
-.add .plus{background:var(--danger);color:#ffffff;height:48px}
+.add .plus{background:var(--danger);color:#ffffff;height:48px;display:grid;place-items:center;padding:0}
+.add .plus svg{width:30px;height:30px}
 input[type=time],input[type=text],textarea{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:9px 14px;min-width:0;width:100%}
 input[type=time]{font-family:var(--f-num)}
 .plus{border:0;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:1.4rem;cursor:pointer;height:44px}
@@ -239,7 +240,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     <label for="addTime" id="addLabel">アラーム追加：月曜日</label>
     <input type="time" id="addTime" value="09:00" required>
     <input type="text" id="addName" placeholder="アラーム名" maxlength="20">
-    <button class="plus" type="submit" aria-label="追加">+</button>
+    <button class="plus" type="submit" aria-label="追加"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5v17M3.5 12h17" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/></svg></button>
   </form>
 
   <hr>
