@@ -121,6 +121,11 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .alarm .info{background:none;border:0;padding:0;margin:0;text-align:left;color:inherit;font:inherit;cursor:pointer;min-width:0;border-radius:8px}
 .alarm .info .l::after{content:"　タップで編集";font-size:.75rem;color:var(--off);display:inline-block}
 .alarm.editing{grid-template-columns:1fr}
+/* 一覧に多く表示できるよう、パネルを低く・間隔を詰める（案A） */
+.list{gap:6px}
+.alarm{padding:8px 14px;border-radius:14px}
+.alarm .t{line-height:1.05}
+.alarm .l{line-height:1.2}
 .editform{display:grid;grid-template-columns:10rem 1fr;gap:8px}
 #edName{font-size:1.1rem}
 #edTime{font-size:1.6rem;font-weight:700;color:var(--on);padding-block:6px;text-align:center}
@@ -644,7 +649,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-05c";
+  const APP_VER="2026-11-05d";
   let last=0;
   async function checkVer(){
     const now=Date.now();
