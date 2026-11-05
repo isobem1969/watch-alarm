@@ -147,6 +147,9 @@ hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 .add{grid-template-columns:9rem 1fr 48px}
 #addTime,#addName{font-size:1.25rem;font-weight:700;padding-block:8px}
 #addTime{color:var(--danger)}
+/* iPhone の Safari では時刻欄が幅の指定を無視して広がり、隣の「アラーム名」欄に重なるため、標準の見た目を外して枠内に収める */
+#addTime{-webkit-appearance:none;appearance:none;display:block;max-width:100%}
+#addTime::-webkit-date-and-time-value{text-align:center}
 #addName{color:var(--on)}
 #addName::placeholder{color:var(--on);opacity:.75;font-weight:700}
 .add .plus{background:var(--danger);color:#ffffff;height:48px;display:grid;place-items:center;padding:0}
@@ -649,7 +652,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-05d";
+  const APP_VER="2026-11-05e";
   let last=0;
   async function checkVer(){
     const now=Date.now();
