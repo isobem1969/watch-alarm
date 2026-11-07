@@ -349,9 +349,8 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       return `<button class="day${d===today?" today":d==="日"?" sun":d==="土"?" sat":""}" role="tab" id="tab-${d}" aria-selected="${d===st.sel}">${d}${n?`<span class="n">${n}</span>`:""}</button>`}).join("");
   }
   /* 次に鳴るアラーム（ONのものから、今より後でいちばん近いもの） */
-  function renderNext(){
-    const el=$("nxBody");if(!el)return;
-    const now=new Date();let best=null;
+  function nextAlarm(now){
+    let best=null;
     for(const a of st.alarms){
       if(a.fresh||!a.on||!/^\d{2}:\d{2}$/.test(a.time))continue;
       const js=(DAYS.indexOf(a.day)+1)%7;
@@ -361,6 +360,11 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
       if(t<=now)t.setDate(t.getDate()+7);
       if(!best||t<best.t)best={t,a};
     }
+    return best;
+  }
+  function renderNext(){
+    const el=$("nxBody");if(!el)return;
+    const now=new Date(),best=nextAlarm(now);
     if(!best){el.innerHTML=`<div class="none">ONのアラームはありません</div>`;return}
     const diff=Math.round((best.t-now)/60000),d=Math.floor(diff/1440),hh=Math.floor(diff%1440/60),mm=diff%60;
     const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
@@ -375,7 +379,17 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick()});
   /* 画面切り替え：次のアラーム ⇄ 曜日ごとの設定 */
   const home=$("home");
-  const showSettings=()=>{home.classList.remove("drag");home.style.transform="";home.classList.add("away");home.setAttribute("aria-hidden","true")};
+  /* 設定画面へ移るときは、次のアラームの曜日を選び、そのアラームを一覧の一番上に出す */
+  function focusNext(){
+    const best=nextAlarm(new Date());if(!best)return;
+    st.sel=best.a.day;armed=null;dropFresh();editing=null;render();
+    const bd=document.querySelector(".bd"),list=$("list");if(!bd||!list)return;
+    const btn=list.querySelector(`[data-edit="${best.a.id}"]`),row=btn&&btn.closest(".alarm"),first=list.querySelector(".alarm");
+    if(!row||!first){bd.scrollTop=0;return}
+    bd.scrollTop=0;
+    bd.scrollTop=row.getBoundingClientRect().top-first.getBoundingClientRect().top;
+  }
+  const showSettings=()=>{focusNext();home.classList.remove("drag");home.style.transform="";home.classList.add("away");home.setAttribute("aria-hidden","true")};
   const showHome=()=>{renderNext();home.classList.remove("drag");home.style.transform="";home.classList.remove("away");home.removeAttribute("aria-hidden")};
   $("goSettings").addEventListener("click",showSettings);
   $("goHome").addEventListener("click",showHome);
