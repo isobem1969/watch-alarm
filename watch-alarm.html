@@ -214,6 +214,14 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 .tog[aria-checked="true"]{background:var(--danger);border-color:var(--danger)}
 .del{color:var(--on)}
 .dup{color:var(--dup-fg)}
+/* Ver.1.10：「まとめて」で未反映のまま閉じたとき、次に開いたら反映するか確認する */
+.remind{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:24px}
+.remind[hidden]{display:none}
+.remind .box{background:var(--panel);color:var(--fg);border:1.5px solid var(--edge);border-radius:20px;padding:20px;width:min(100%,340px);text-align:center}
+.remind .ttl{font-weight:700;font-size:1.1rem;color:var(--danger)}
+.remind .msg{margin:10px 0 16px;font-size:.95rem;line-height:1.6}
+.remind .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.remind #remindGo{background:var(--apply-bg);color:var(--apply-fg);box-shadow:var(--hl-ring)}
 </style>
 </head>
 <body>
@@ -336,6 +344,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
  </div></div>
 </div>
 
+<div class="remind" id="remind" role="alertdialog" aria-modal="true" aria-labelledby="remindTtl" hidden><div class="box"><div class="ttl" id="remindTtl">未反映の変更があります</div><div class="msg" id="remindMsg">前回、時計アプリに反映しないまま閉じました。今すぐ時計アプリに反映しますか？</div><div class="btns"><button class="btn ghost" id="remindLater" type="button">あとで</button><button class="btn" id="remindGo" type="button">反映する</button></div></div></div>
 <script>
 (function(){
   const DAYS=["月","火","水","木","金","土","日"];
@@ -671,6 +680,16 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   /* 反映方法：auto＝操作のたびに自動で反映（都度修正）、batch＝「時計アプリに反映」でまとめて反映 */
   if(st.mode!=="batch")st.mode="auto";
   function autoApply(){if(st.mode==="auto")apply(false)}
+  /* 「まとめて」で未反映のまま閉じた場合、次に開いたとき（裏から戻ったときも）反映するか確認する。
+     ショートカットの起動には画面のタップが必要なため、iPhone標準の確認ではなくページ内の確認を使う。 */
+  function remindCheck(){
+    if(st.mode!=="batch"||!st.dirty||st.bulk)return;
+    $("remind").hidden=false;
+  }
+  $("remindLater").addEventListener("click",()=>{$("remind").hidden=true});
+  $("remindGo").addEventListener("click",()=>{$("remind").hidden=true;apply(false)});
+  remindCheck();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)remindCheck()});
   function renderMode(){for(const b of document.querySelectorAll("#modeSeg [data-mode]"))b.setAttribute("aria-checked",String(b.dataset.mode===st.mode))}
   $("modeSeg").addEventListener("click",e=>{const b=e.target.closest("[data-mode]");if(!b||b.dataset.mode===st.mode)return;
     st.mode=b.dataset.mode;save();renderMode();
@@ -707,7 +726,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-05e";
+  const APP_VER="2026-11-08a";
   let last=0;
   async function checkVer(){
     const now=Date.now();
