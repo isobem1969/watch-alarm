@@ -197,6 +197,14 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 #snoozeSeg button[data-snooze="on"][aria-checked="true"]{background:var(--danger);color:#ffffff;box-shadow:none}
 #snoozeSeg button[data-snooze="off"][aria-checked="true"]{background:var(--on);color:#ffffff;box-shadow:none}
 .home .nl{font-size:2rem}
+/* Ver.1.08：「すべてON」を赤、ONのアラーム時刻を青、OFFの時刻・名前を少し濃いグレー、次のアラーム時刻を青に */
+:root{--off-fg:#a3a6a0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--off-fg:#6c6f6a}}
+:root[data-theme="dark"]{--off-fg:#6c6f6a}
+.btn.allon{background:var(--danger);color:#ffffff}
+.alarm:not(.is-off) .t{color:var(--on)}
+.alarm.is-off .t,.alarm.is-off .l{color:var(--off-fg)}
+.home .nt{color:var(--on)}
 </style>
 </head>
 <body>
