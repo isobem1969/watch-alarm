@@ -76,12 +76,15 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.65rem;margin:0;line-
 .home .nt{font-family:var(--f-num);font-weight:600;font-size:clamp(4.2rem,24vw,7rem);line-height:1.05;letter-spacing:.02em;margin-top:4px}
 .home .nl{font-family:var(--f-display);font-weight:700;font-size:1.3rem;color:var(--on);margin-top:6px}
 .home .nr{margin-top:14px;font-size:1.05rem;color:var(--muted);font-weight:600}
+/* 残り時間の数字部分は赤字で大きく */
+.home .nr .rest{color:var(--danger);font-size:1.6rem;font-weight:700}
 .home .none{margin-top:18px;font-size:1.2rem;color:var(--muted);font-weight:600}
-.home .go{margin-top:44px;border:0;background:var(--card);color:var(--fg);font:inherit;font-weight:700;font-size:1rem;padding:12px 22px;border-radius:22px;cursor:pointer}
+/* 「曜日ごとの設定へ ›」ボタンは青の塗り・白文字で大きく目立たせる（A案） */
+.home .go{margin-top:44px;border:0;background:var(--on);color:#ffffff;font:inherit;font-weight:700;font-size:1.3rem;padding:18px 0;width:min(100%,360px);border-radius:28px;box-shadow:0 4px 12px rgba(0,122,255,.35);cursor:pointer}
 .home .hint{margin-top:10px;font-size:.85rem;color:var(--muted)}
 /* 最初の画面：全アラームの一括設定 */
-.home .bulk{margin-top:28px;width:min(100%,360px);background:var(--card);border-radius:18px;padding:14px 16px;text-align:left}
-.home .bulk h2{margin:0 0 10px;font-family:var(--f-display);font-size:1rem;font-weight:700}
+.home .bulk{margin-top:28px;width:min(100%,360px);background:var(--card);border:1.5px solid var(--edge);border-radius:18px;padding:14px 16px;text-align:left}
+.home .bulk h2{margin:0 0 10px;font-family:var(--f-display);font-size:1rem;font-weight:700;color:var(--on)}
 .home .bulk .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .home .bulk .lab{font-weight:700}
 .home .bulk .seg{background:var(--panel)}
@@ -186,7 +189,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   <button class="go" id="goSettings" type="button">曜日ごとの設定へ ›</button>
   <div class="hint">左へスワイプしても進めます</div>
   <div class="bulk" id="bulkBox">
-    <h2>全アラームの一括設定</h2>
+    <h2>全アラームの一括スヌーズ設定</h2>
     <div class="row">
       <span class="lab">スヌーズ</span>
       <div class="seg" id="snoozeSeg" role="radiogroup" aria-label="スヌーズ">
@@ -375,7 +378,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     const when=(dd===0?"今日":dd===1?"明日":"")+`（${best.a.day}曜日）`;
     const rest=(d?`${d}日`:"")+(d||hh?`${hh}時間`:"")+`${mm}分`;
     const cls=best.a.day==="土"?" sat":best.a.day==="日"?" sun":"";
-    el.innerHTML=`<div class="nd${cls}">${when}</div><div class="nt">${best.a.time}</div><div class="nl">${esc(best.a.label||"アラーム")}</div><div class="nr">あと ${rest}</div>`;
+    el.innerHTML=`<div class="nd${cls}">${when}</div><div class="nt">${best.a.time}</div><div class="nl">${esc(best.a.label||"アラーム")}</div><div class="nr">あと <span class="rest">${rest}</span></div>`;
   }
   const tick=()=>{if(new Date().getDay()!==dayShown)renderDays();renderNext()};
   setInterval(tick,30000);
