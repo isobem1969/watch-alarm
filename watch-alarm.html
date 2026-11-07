@@ -205,6 +205,15 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 .alarm:not(.is-off) .t{color:var(--on)}
 .alarm.is-off .t,.alarm.is-off .l{color:var(--off-fg)}
 .home .nt{color:var(--on)}
+/* Ver.1.09：次のアラーム時刻・ONの時刻・ONの丸ボタンを赤、「削除」を青、「複製」を緑に */
+:root{--dup-fg:#1e8e3e}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--dup-fg:#30d158}}
+:root[data-theme="dark"]{--dup-fg:#30d158}
+.home .nt{color:var(--danger)}
+.alarm:not(.is-off) .t{color:var(--danger)}
+.tog[aria-checked="true"]{background:var(--danger);border-color:var(--danger)}
+.del{color:var(--on)}
+.dup{color:var(--dup-fg)}
 </style>
 </head>
 <body>
