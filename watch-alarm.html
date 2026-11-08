@@ -239,6 +239,27 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 .day .n{font-size:1.3rem;font-weight:700}
 /* Ver.1.15：残り時間（赤字）だけをさらに大きく */
 .home .nr .rest{font-size:2.3rem}
+/* Ver.1.17 ヘッダーのスイッチ2段・フッターの調整 */
+#modeSeg button,#jumpSeg button{padding:2px 11px 0;font-size:15px}
+#jumpSeg button{height:42px}
+#jumpSeg button[data-jump="none"][aria-checked="true"]{background:#ff9500;color:#ffffff;box-shadow:none}
+#jumpSeg button[data-jump="first"][aria-checked="true"]{background:#1e8e3e;color:#ffffff;box-shadow:none}
+#modeSeg,#jumpSeg{background:var(--panel);border:1.5px solid var(--edge);border-radius:18px}
+#modeSeg button,#jumpSeg button{border-radius:15px}
+#snoozeSeg{border:1.5px solid var(--edge)}
+header{align-items:center;margin-top:-4px}
+header h1{white-space:nowrap;color:var(--danger);font-size:28px}
+#list .alarm .t{font-size:27px}
+.alarm .l,.alarm.is-off .l{color:var(--fg)}
+#addTime{font-size:27px;text-align:center}
+#addName{text-align:center}
+#addName,#addName::placeholder{color:var(--fg);opacity:1}
+#copyFrom{text-align:center;text-align-last:center}
+#addName,#copyFrom,#copyDay,#applyBtn{font-size:16px;font-weight:700}
+#addTime,#addName,.add .plus,#copyFrom,#copyDay,#applyBtn{height:48px;box-sizing:border-box;padding-top:0;padding-bottom:0}
+#addTime,#addName,#copyFrom,#copyDay,#applyBtn{border-radius:18px}
+#copyDay{background:var(--danger);color:#ffffff}
+#applyBtn{background:var(--on);color:#ffffff}
 </style>
 </head>
 <body>
@@ -276,6 +297,10 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     <div>
       <h1>Watch Alarm</h1>
       <div class="sub">曜日別・複数アラーム管理 → iPhone時計アプリへ反映</div>
+    </div>
+    <div class="seg" id="jumpSeg" role="radiogroup" aria-label="曜日を切り替えたときの表示位置">
+     <button type="button" role="radio" data-jump="none">移動なし</button>
+     <button type="button" role="radio" data-jump="first">連番最初</button>
     </div>
     <svg class="watch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6.5" y="6" width="11" height="12" rx="3"/><path d="M9 6l.6-3h4.8l.6 3M9 18l.6 3h4.8l.6-3M12 9.5V12l1.6 1"/></svg>
   </header>
@@ -377,6 +402,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
   if(!st||!Array.isArray(st.alarms)) st=JSON.parse(JSON.stringify(sample));
   if(!Array.isArray(st.removed)) st.removed=[];
   if(!DAYS.includes(st.sel)) st.sel="月";
+  if(st.jump!=="none") st.jump="first"; /* 曜日切替時：連番最初／移動なし */
   if(typeof st.snooze!=="boolean") st.snooze=true; /* スヌーズ（全アラーム共通） */
   st.alarms=st.alarms.filter(x=>!x.fresh);
   (function cleanDupNames(){
@@ -518,10 +544,10 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
 
   function dropFresh(){st.alarms=st.alarms.filter(x=>!x.fresh)}
   $("days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;st.sel=b.id.slice(4);armed=null;dropFresh();editing=null;render();
-    /* 曜日を切り替えたら、ONの連番1のアラームを一覧の一番上に出す（ONが無ければ先頭） */
+    /* 曜日を切り替えたら、「連番最初」ならONの連番1のアラームを一覧の一番上に出す（ONが無い時と「移動なし」は先頭） */
     const bd=document.querySelector(".bd"),list=$("list");if(!bd||!list)return;
     const row=list.querySelector(".alarm:not(.is-off)"),first=list.querySelector(".alarm");
-    bd.scrollTop=0;if(row&&first)bd.scrollTop=row.getBoundingClientRect().top-first.getBoundingClientRect().top});
+    bd.scrollTop=0;if(st.jump==="first"&&row&&first)bd.scrollTop=row.getBoundingClientRect().top-first.getBoundingClientRect().top});
   $("list").addEventListener("click",e=>{
     const ed=e.target.closest("[data-edit]");
     if(ed){dropFresh();editing=ed.dataset.edit;armed=null;render();return}
@@ -716,6 +742,11 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
     st.mode=b.dataset.mode;save();renderMode();
     toast(st.mode==="auto"?"都度修正：操作のたびに時計アプリへ自動で反映します。"+(st.dirty?"未反映の変更は「時計アプリに反映」で送ってください。":""):"まとめて：変更をためておき、「時計アプリに反映」を押したときにまとめて反映します。");});
   renderMode();
+  function renderJump(){for(const b of document.querySelectorAll("#jumpSeg [data-jump]"))b.setAttribute("aria-checked",String(b.dataset.jump===st.jump))}
+  $("jumpSeg").addEventListener("click",e=>{const b=e.target.closest("[data-jump]");if(!b||b.dataset.jump===st.jump)return;
+    st.jump=b.dataset.jump;save();renderJump();
+    toast(st.jump==="first"?"連番最初：曜日を切り替えると、ONの「1.」を一番上に表示します。":"移動なし：曜日を切り替えると、一覧の先頭から表示します。");});
+  renderJump();
   {const bd=document.querySelector(".bd");
    $("jumpTop").addEventListener("click",()=>bd.scrollTo({top:0,behavior:"smooth"}));
    $("jumpBottom").addEventListener("click",()=>bd.scrollTo({top:bd.scrollHeight,behavior:"smooth"}));}
@@ -747,7 +778,7 @@ textarea{border-radius:12px;min-height:90px;font-family:var(--f-num);font-size:.
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-08g";
+  const APP_VER="2026-11-08h";
   let last=0;
   async function checkVer(){
     const now=Date.now();
