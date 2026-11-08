@@ -280,6 +280,14 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
 .editbtns .sbtn{flex:0 0 37.5%;white-space:nowrap;padding-left:6px;padding-right:6px}
 /* Ver.1.21 コピー・時計アプリに反映の黒フチを除く */
 #copyDay,#applyBtn{border:0;box-shadow:none}
+/* Ver.1.22 ONのパネルを薄いピンクに */
+.alarm:not(.is-off):not(.editing){background:#fff0f3}
+/* 横向きにしても縦向きの画面のまま表示する（ページ全体を逆向きに90度回す） */
+html.rotL body,html.rotR body{position:fixed;top:0;left:0;width:100vh;height:100vw;transform-origin:top left}
+html.rotL body{transform:rotate(-90deg) translateX(-100%)}
+html.rotR body{transform:rotate(90deg) translateY(-100%)}
+html.rotL .app,html.rotR .app,html.rotL .home,html.rotR .home{height:100%}
+html.rotL .home .nt,html.rotR .home .nt{font-size:clamp(4.2rem,24vh,7rem)}
 </style>
 </head>
 <body>
@@ -812,12 +820,27 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)later()});
   if(window.visualViewport){visualViewport.addEventListener("resize",later);visualViewport.addEventListener("scroll",later)}
 })();
+/* 横向き対策（Ver.1.22）：iPhoneを横にしたら、ページ全体を逆向きに回して縦向きの見た目を保つ */
+(()=>{
+  const set=()=>{
+    const land=window.innerWidth>window.innerHeight;
+    let a=(screen.orientation&&typeof screen.orientation.angle==="number")?screen.orientation.angle:(typeof window.orientation==="number"?window.orientation:90);
+    a=((a%360)+360)%360;
+    const r=document.documentElement.classList;
+    r.toggle("rotL",land&&a!==270);
+    r.toggle("rotR",land&&a===270);
+  };
+  set();
+  window.addEventListener("resize",set);
+  window.addEventListener("orientationchange",()=>{set();setTimeout(set,200)});
+  if(screen.orientation)screen.orientation.addEventListener("change",set);
+})();
 /* 新しい版の自動読み込み
    GitHub Pages はページを最大10分間 iPhone 側に残すため、開いたとき・裏から戻ったときに
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-08l";
+  const APP_VER="2026-11-08m";
   let last=0;
   async function checkVer(){
     const now=Date.now();
