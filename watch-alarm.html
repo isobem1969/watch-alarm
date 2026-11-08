@@ -260,6 +260,24 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
 #addTime,#addName,#copyFrom,#copyDay,#applyBtn{border-radius:18px}
 #copyDay{background:var(--danger);color:#ffffff}
 #applyBtn{background:var(--on);color:#ffffff}
+/* Ver.1.20 ヘッダーの未選択の文字を黒、編集パネルの調整 */
+#modeSeg button,#jumpSeg button{color:var(--fg)}
+#modeSeg button[aria-checked="true"],#jumpSeg button[aria-checked="true"]{color:#ffffff}
+.editform{grid-template-columns:1fr 1fr}
+.tbox{position:relative;min-width:0}
+#edTime{width:100%;color:transparent;-webkit-text-fill-color:transparent}
+.tshow{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;font-family:var(--f-num);font-size:1.6rem;font-weight:700;color:var(--on)}
+.alarm.editing.isdup .tshow{color:var(--dup-fg)}
+#edName{text-align:center}
+#edTime,#edName,.editbtns .sbtn{height:48px;box-sizing:border-box;padding-top:0;padding-bottom:0;border-radius:18px}
+.editbtns{gap:0}
+.editbtns .sbtn{flex:1 1 0;font-size:16px;font-weight:700;color:#ffffff}
+.editbtns .sbtn.ghost{background:#9a9a9a;color:#ffffff;border:0;border-radius:18px 0 0 18px}
+.editbtns .sbtn[type="submit"]{background:var(--danger);border-radius:0 18px 18px 0}
+.tshow{padding-top:5px}
+#edName{padding-bottom:3px}
+.editbtns{justify-content:center}
+.editbtns .sbtn{flex:0 0 37.5%;white-space:nowrap;padding-left:6px;padding-right:6px}
 </style>
 </head>
 <body>
@@ -300,7 +318,7 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
     </div>
     <div class="seg" id="jumpSeg" role="radiogroup" aria-label="曜日を切り替えたときの表示位置">
      <button type="button" role="radio" data-jump="none">移動なし</button>
-     <button type="button" role="radio" data-jump="first">連番最初</button>
+     <button type="button" role="radio" data-jump="first">連番先頭</button>
     </div>
     <svg class="watch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="6.5" y="6" width="11" height="12" rx="3"/><path d="M9 6l.6-3h4.8l.6 3M9 18l.6 3h4.8l.6-3M12 9.5V12l1.6 1"/></svg>
   </header>
@@ -402,7 +420,7 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
   if(!st||!Array.isArray(st.alarms)) st=JSON.parse(JSON.stringify(sample));
   if(!Array.isArray(st.removed)) st.removed=[];
   if(!DAYS.includes(st.sel)) st.sel="月";
-  if(st.jump!=="none") st.jump="first"; /* 曜日切替時：連番最初／移動なし */
+  if(st.jump!=="none") st.jump="first"; /* 曜日切替時：連番先頭／移動なし */
   if(typeof st.snooze!=="boolean") st.snooze=true; /* スヌーズ（全アラーム共通） */
   st.alarms=st.alarms.filter(x=>!x.fresh);
   (function cleanDupNames(){
@@ -524,7 +542,7 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
       <div class="alarm editing${a.fresh?" isdup":""}">
         <form class="editform" data-form="${a.id}">
           <label class="editlabel" for="edTime">${d}曜日のアラームを編集</label>
-          <input type="time" id="edTime" value="${a.time}" required>
+          <div class="tbox"><input type="time" id="edTime" value="${a.time}" required><span class="tshow" id="edTimeShow" aria-hidden="true">${a.time}</span></div>
           <input type="text" id="edName" value="${esc(a.label||"アラーム")}" maxlength="20" placeholder="アラーム名">
           <div class="editbtns"><button class="sbtn ghost" type="button" data-cancel>キャンセル</button><button class="sbtn" type="submit">保存</button></div>
         </form>
@@ -544,7 +562,7 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
 
   function dropFresh(){st.alarms=st.alarms.filter(x=>!x.fresh)}
   $("days").addEventListener("click",e=>{const b=e.target.closest(".day");if(!b)return;st.sel=b.id.slice(4);armed=null;dropFresh();editing=null;render();
-    /* 曜日を切り替えたら、「連番最初」ならONの連番1のアラームを一覧の一番上に出す（ONが無い時と「移動なし」は先頭） */
+    /* 曜日を切り替えたら、「連番先頭」ならONの連番1のアラームを一覧の一番上に出す（ONが無い時と「移動なし」は先頭） */
     const bd=document.querySelector(".bd"),list=$("list");if(!bd||!list)return;
     const row=list.querySelector(".alarm:not(.is-off)"),first=list.querySelector(".alarm");
     bd.scrollTop=0;if(st.jump==="first"&&row&&first)bd.scrollTop=row.getBoundingClientRect().top-first.getBoundingClientRect().top});
@@ -572,6 +590,9 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
       toast("削除しました。");
       autoApply()} /* 削除したら自動で反映（都度修正のとき） */
   });
+  /* 編集中の時刻は「03:20」のように2桁で見せる（時刻欄そのものの文字は隠し、上に重ねて表示） */
+  $("list").addEventListener("input",e=>{if(e.target.id==="edTime"){const v=$("edTimeShow");if(v)v.textContent=e.target.value||"--:--"}});
+  $("list").addEventListener("change",e=>{if(e.target.id==="edTime"){const v=$("edTimeShow");if(v)v.textContent=e.target.value||"--:--"}});
   $("list").addEventListener("submit",e=>{
     const f=e.target.closest("[data-form]");if(!f)return;
     e.preventDefault();
@@ -745,7 +766,7 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
   function renderJump(){for(const b of document.querySelectorAll("#jumpSeg [data-jump]"))b.setAttribute("aria-checked",String(b.dataset.jump===st.jump))}
   $("jumpSeg").addEventListener("click",e=>{const b=e.target.closest("[data-jump]");if(!b||b.dataset.jump===st.jump)return;
     st.jump=b.dataset.jump;save();renderJump();
-    toast(st.jump==="first"?"連番最初：曜日を切り替えると、ONの「1.」を一番上に表示します。":"移動なし：曜日を切り替えると、一覧の先頭から表示します。");});
+    toast(st.jump==="first"?"連番先頭：曜日を切り替えると、ONの「1.」を一番上に表示します。":"移動なし：曜日を切り替えると、一覧の先頭から表示します。");});
   renderJump();
   {const bd=document.querySelector(".bd");
    $("jumpTop").addEventListener("click",()=>bd.scrollTo({top:0,behavior:"smooth"}));
@@ -794,7 +815,7 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-08j";
+  const APP_VER="2026-11-08k";
   let last=0;
   async function checkVer(){
     const now=Date.now();
