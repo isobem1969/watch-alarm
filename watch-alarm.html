@@ -274,10 +274,12 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
 .editbtns .sbtn{flex:1 1 0;font-size:16px;font-weight:700;color:#ffffff}
 .editbtns .sbtn.ghost{background:#9a9a9a;color:#ffffff;border:0;border-radius:18px 0 0 18px}
 .editbtns .sbtn[type="submit"]{background:var(--danger);border-radius:0 18px 18px 0}
-.tshow{padding-top:5px}
-#edName{padding-bottom:3px}
+.tshow{padding-top:0;padding-bottom:1.5px}
+#edName{padding-bottom:0}
 .editbtns{justify-content:center}
 .editbtns .sbtn{flex:0 0 37.5%;white-space:nowrap;padding-left:6px;padding-right:6px}
+/* Ver.1.21 コピー・時計アプリに反映の黒フチを除く */
+#copyDay,#applyBtn{border:0;box-shadow:none}
 </style>
 </head>
 <body>
@@ -815,7 +817,7 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-08k";
+  const APP_VER="2026-11-08l";
   let last=0;
   async function checkVer(){
     const now=Date.now();
