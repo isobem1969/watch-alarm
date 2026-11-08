@@ -288,6 +288,15 @@ html.rotL body{transform:rotate(-90deg) translateX(-100%)}
 html.rotR body{transform:rotate(90deg) translateY(-100%)}
 html.rotL .app,html.rotR .app,html.rotL .home,html.rotR .home{height:100%}
 html.rotL .home .nt,html.rotR .home .nt{font-size:clamp(4.2rem,24vh,7rem)}
+/* Ver.1.23 横向きでも縦向きと同じ配置にする：横向きで文字が自動で大きくならないようにし、
+   左右の余白（横向き用）を使わず、カメラ側（上）にだけ余白を取る */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html.rotL .hd,html.rotR .hd,html.rotL .bd,html.rotR .bd,html.rotL .ft,html.rotR .ft{padding-left:16px;padding-right:16px}
+html.rotL .hd,html.rotR .hd{padding-top:calc(max(env(safe-area-inset-left,0px),env(safe-area-inset-right,0px)) + 16px)}
+html.rotL .ft,html.rotR .ft{padding-bottom:10px}
+html.rotL .jump,html.rotR .jump{right:8px}
+html.rotL .bdwrap>.bd,html.rotR .bdwrap>.bd{padding-right:60px}
+html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),env(safe-area-inset-right,0px)) + 24px) 16px 24px 16px}
 </style>
 </head>
 <body>
@@ -840,7 +849,7 @@ html.rotL .home .nt,html.rotR .home .nt{font-size:clamp(4.2rem,24vh,7rem)}
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-08m";
+  const APP_VER="2026-11-08n";
   let last=0;
   async function checkVer(){
     const now=Date.now();
