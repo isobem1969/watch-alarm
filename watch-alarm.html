@@ -773,12 +773,28 @@ header h1{white-space:nowrap;color:var(--danger);font-size:32px}
   });
   render();
 })();
+/* 押した位置のずれ防止（Ver.1.19）
+   キーボードの表示・画面の回転・ショートカットからの復帰で、iPhone がページ全体を少しずらしたままにすることがあり、
+   見た目と押せる位置がずれる。ページ全体がずれたら、すぐ元（0,0）に戻す。 */
+(()=>{
+  const typing=()=>{const e=document.activeElement;return !!e&&/^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName)};
+  const fix=()=>{if(typing())return; /* 入力中はキーボードで欄が隠れないよう触らない */
+    if(window.scrollX||window.scrollY)window.scrollTo(0,0)};
+  const later=()=>{fix();setTimeout(fix,100);setTimeout(fix,400)};
+  window.addEventListener("scroll",fix,{passive:true});
+  window.addEventListener("resize",later);
+  window.addEventListener("orientationchange",later);
+  window.addEventListener("pageshow",later);
+  document.addEventListener("focusout",later);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)later()});
+  if(window.visualViewport){visualViewport.addEventListener("resize",later);visualViewport.addEventListener("scroll",later)}
+})();
 /* 新しい版の自動読み込み
    GitHub Pages はページを最大10分間 iPhone 側に残すため、開いたとき・裏から戻ったときに
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-08i";
+  const APP_VER="2026-11-08j";
   let last=0;
   async function checkVer(){
     const now=Date.now();
