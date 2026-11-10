@@ -298,6 +298,8 @@ html.needApply .hd,html.needApply .ft{background:#efe6fb}
 /* ボディ下の操作ボタンに黒枠、曜日の一括削除は黒 */
 #copyBtn,#importToggle,#resendAll{border:1.5px solid var(--edge)}
 #delAll{background:var(--edge);color:#ffffff;border:0}
+/* Ver.1.26 最初の画面（次のアラーム）の背景も薄いグリーン */
+.home{background:#e8f6ea}
 html.rotL .hd,html.rotR .hd,html.rotL .bd,html.rotR .bd,html.rotL .ft,html.rotR .ft{padding-left:16px;padding-right:16px}
 html.rotL .hd,html.rotR .hd{padding-top:calc(max(env(safe-area-inset-left,0px),env(safe-area-inset-right,0px)) + 16px)}
 html.rotL .ft,html.rotR .ft{padding-bottom:10px}
@@ -857,7 +859,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-10b";
+  const APP_VER="2026-11-10c";
   let last=0;
   async function checkVer(){
     const now=Date.now();
