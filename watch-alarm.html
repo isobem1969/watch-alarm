@@ -291,6 +291,8 @@ html.rotL .home .nt,html.rotR .home .nt{font-size:clamp(4.2rem,24vh,7rem)}
 /* Ver.1.23 横向きでも縦向きと同じ配置にする：横向きで文字が自動で大きくならないようにし、
    左右の余白（横向き用）を使わず、カメラ側（上）にだけ余白を取る */
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+/* Ver.1.24 未反映の変更がある時は、ヘッダー・フッターの背景を薄い紫に */
+html.needApply .hd,html.needApply .ft{background:#efe6fb}
 html.rotL .hd,html.rotR .hd,html.rotL .bd,html.rotR .bd,html.rotL .ft,html.rotR .ft{padding-left:16px;padding-right:16px}
 html.rotL .hd,html.rotR .hd{padding-top:calc(max(env(safe-area-inset-left,0px),env(safe-area-inset-right,0px)) + 16px)}
 html.rotL .ft,html.rotR .ft{padding-bottom:10px}
@@ -573,6 +575,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
         <button class="tog" role="switch" aria-checked="${a.on}" aria-label="${a.time} ${esc(a.label||"")} ON/OFF" data-tog="${a.id}" type="button">${check}</button>
       </div>`).join(""):`<div class="empty">${d}曜日のアラームはまだありません。下の欄から追加できます。</div>`;
     const p=$("pending");
+    document.documentElement.classList.toggle("needApply",!!st.dirty); /* 未反映の時はヘッダー・フッターを薄い紫に */
     if(st.dirty){p.className="pending";p.textContent="未反映の変更があります。「時計アプリに反映」を押してください。"}
     else{p.className="pending ok";p.textContent="最後の反映以降、変更はありません。"}
     save();
@@ -849,7 +852,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-08n";
+  const APP_VER="2026-11-10a";
   let last=0;
   async function checkVer(){
     const now=Date.now();
