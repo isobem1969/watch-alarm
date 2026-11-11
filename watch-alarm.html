@@ -294,7 +294,8 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 /* Ver.1.24 未反映の変更がある時は、ヘッダー・フッターの背景を薄い紫に */
 /* Ver.1.25 通常時のヘッダー・フッターは薄いグリーン（未反映の時は薄い紫） */
 .hd,.ft{background:#e8f6ea}
-html.needApply .hd,html.needApply .ft{background:#efe6fb}
+/* Ver.1.27 未反映の時の紫を一段濃く（案B） */
+html.needApply .hd,html.needApply .ft{background:#d6c2f5}
 /* ボディ下の操作ボタンに黒枠、曜日の一括削除は黒 */
 #copyBtn,#importToggle,#resendAll{border:1.5px solid var(--edge)}
 #delAll{background:var(--edge);color:#ffffff;border:0}
@@ -859,7 +860,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-10c";
+  const APP_VER="2026-11-11a";
   let last=0;
   async function checkVer(){
     const now=Date.now();
