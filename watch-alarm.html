@@ -51,6 +51,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .ft hr{margin:0}
 .copyrow{margin-top:0!important}
 #copyDay{background:var(--copy-bg);color:var(--copy-fg);box-shadow:var(--hl-ring)}
+#fullSyncBtn{background:#d70015;color:#ffffff}
 #applyBtn{background:var(--apply-bg);color:var(--apply-fg);box-shadow:var(--hl-ring)}
 .toast:empty{display:none}
 .btn.delall{background:var(--danger);color:#ffffff}
@@ -379,12 +380,14 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
   <details>
     <summary>時計アプリとの同期について</summary>
     <div class="body">
-      <p>「時計アプリに反映」では、Watch Alarmの全登録を時計アプリに反映します。Watch Alarmにないアラームは、時計アプリで手動作成したものも含めて削除します。</p>
+      <p>通常はフッターの「時計アプリに反映」を使います。ショートカット「WatchAlarm反映」で、前回からの変更を時計アプリへ送ります。</p>
+      <p>下の「時計アプリ完全同期」は、全曜日の登録と時計アプリの全件を照合します。Watch Alarmにないアラームは、時計アプリで手動作成したものも含めて削除します。全件を処理するため時間がかかります。</p>
       <p>Watch AlarmでOFFにした登録は、時計アプリでもOFFとして残します。Watch Alarmの登録が0件の場合は、取得できる時計アプリのアラームをすべて削除します。</p>
-      <p>通常の同期にはショートカット「WatchAlarm完全同期」を使用します。全件一覧が確認できない場合は、同期を中止します。</p>
+      <p>完全同期にはショートカット「WatchAlarm完全同期」を使用します。全件一覧が確認できない場合は、同期を中止します。</p>
       <p>全アラームの一括スヌーズ設定は、これまでどおり2回に分けて実行します。</p>
     </div>
   </details>
+  <button class="btn" id="fullSyncBtn" type="button">時計アプリ完全同期</button>
  </div></main>
  <div class="jump" id="jump">
   <button type="button" id="jumpTop" aria-label="一番上へ"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V5M5 11.5L12 4.5l7 7"/></svg></button>
@@ -421,7 +424,8 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
 (function(){
   const DAYS=["月","火","水","木","金","土","日"];
   const EN=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  const SHORTCUT="WatchAlarm完全同期";
+  const SHORTCUT="WatchAlarm反映";
+  const FULL_SYNC_SHORTCUT="WatchAlarm完全同期";
   const KEY="watchAlarm.v1";
   const sample={alarms:[
     {id:"s1",day:"月",time:"06:00",label:"起床",on:true},
@@ -681,33 +685,35 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
     const d=new Date(),p=n=>String(n).padStart(2,"0"),o=-d.getTimezoneOffset(),s=o>=0?"+":"-",ao=Math.abs(o);
     return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${t}:00${s}${p(Math.floor(ao/60))}:${p(ao%60)}`;
   }
-  function payload(full){
+  function payload(full,mirror=false){
     const cur=st.alarms.filter(a=>!a.fresh);
     const curKeys=new Set(cur.map(key));
     const syn=st.synced;
-    const send=cur.slice()
+    const send=cur.filter(a=>mirror||full||!syn||!syn[key(a)]||syn[key(a)].on!==!!a.on)
       .sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||a.time.localeCompare(b.time));
     const rm=new Map();
     for(const r of st.removed)if(!curKeys.has(r.key))rm.set(r.key,{key:r.key,day:r.day,time:r.time});
     if(syn)for(const k in syn)if(!curKeys.has(k)&&!rm.has(k))rm.set(k,{key:k,day:syn[k].day,time:syn[k].time});
-    return {version:2,
-      mirrorKeys:Object.fromEntries([["__WATCH_ALARM_COMPLETE_V2__","1"],...cur.map(a=>[key(a),"1"])]),
-      mirrorCount:cur.length,
+    return {version:mirror?2:1,
+      ...(mirror?{mirrorKeys:Object.fromEntries([["__WATCH_ALARM_COMPLETE_V2__","1"],...cur.map(a=>[key(a),"1"])]),mirrorCount:cur.length}:{}),
       alarms:send.map(a=>({key:key(a),day:a.day,repeat:EN[DAYS.indexOf(a.day)],[EN[DAYS.indexOf(a.day)]]:"1",time:atISO(a.time),label:a.label,state:a.on?"ON":"OFF",...(a.on?{on:"1"}:{}),snooze:!!st.snooze})),
       removed:[...rm.values()],
       /* ウィジェット用：ONのアラーム全件（曜日と時刻） */
       widget:JSON.stringify({on:cur.filter(a=>a.on).map(a=>({day:a.day,time:a.time}))})};
   }
-  function apply(full){
+  function apply(full,mirror=false){
     dropFresh();editing=null;armed=null;
-    const pl=payload(full);
-    const msg=`全${pl.alarms.length}件を時計アプリに送ります。Watch Alarmにないアラームは削除されます。`;
+    const pl=payload(full,mirror);
+    if(!mirror&&!full&&!pl.alarms.length&&!pl.removed.length){
+      st.dirty=false;st.removed=[];render();
+      toast("前回の反映から変更はありません。時計アプリと食い違う場合は「全件を送り直す」を押してください。");return}
+    const msg=mirror?`全${pl.alarms.length}件を完全同期に送ります。Watch Alarmにないアラームは削除されます。`:`${pl.alarms.length}件の作成・ON/OFFと${pl.removed.length}件の削除を時計アプリに送ります。`;
     sendPayload(pl,()=>{st.dirty=false;st.removed=[];st.synced=snapOf(st.alarms);render();toast(msg)},toast);
   }
   /* データをクリップボードに入れてショートカットを起動する（onSent：起動直前の処理、onFail：失敗の表示） */
   function sendPayload(pl,onSent,onFail){
     const json=JSON.stringify(pl);
-    const url="shortcuts://run-shortcut?name="+encodeURIComponent(pl.version===2?SHORTCUT:"WatchAlarm反映");
+    const url="shortcuts://run-shortcut?name="+encodeURIComponent(pl.version===2?FULL_SYNC_SHORTCUT:SHORTCUT);
     let ok=false;
     try{
       const ta=document.createElement("textarea");
@@ -757,6 +763,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
   });
   renderBulk();
   $("applyBtn").addEventListener("click",()=>apply(false));
+  $("fullSyncBtn").addEventListener("click",()=>apply(true,true));
   /* 反映方法：auto＝操作のたびに自動で反映（都度修正）、batch＝「時計アプリに反映」でまとめて反映 */
   if(st.mode!=="batch")st.mode="auto";
   function autoApply(){if(st.mode==="auto")apply(false)}
@@ -842,7 +849,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-17-mirror1";
+  const APP_VER="2026-11-17-sync-buttons1";
   let last=0;
   async function checkVer(){
     const now=Date.now();
