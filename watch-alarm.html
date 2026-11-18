@@ -387,6 +387,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
       <p>Watch AlarmでOFFにした登録は、時計アプリでもOFFとして残します。Watch Alarmの登録が0件の場合は、取得できる時計アプリのアラームをすべて削除します。</p>
       <p>完全同期にはショートカット「WatchAlarm完全同期」を使用します。全件一覧が確認できない場合は、同期を中止します。</p>
       <p>全アラームの一括スヌーズ設定は、これまでどおり2回に分けて実行します。</p>
+      <p class="note">表示版：2026-11-18-completion2<br><span id="completionState"></span></p>
     </div>
   </details>
   <button class="btn" id="fullSyncBtn" type="button">時計アプリ完全同期</button>
@@ -847,6 +848,12 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
   window.addEventListener("pageshow",receiveCompletion);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden)receiveCompletion()});
   receiveCompletion();
+  function showCompletionState(){
+    let pending;try{pending=JSON.parse(localStorage.getItem("watchAlarm.pendingCompletion")||"null")}catch(e){}
+    $("completionState").textContent=pending?"直近の反映：終了通知を待っています。":"直近の反映：終了通知の待機なし。";
+  }
+  showCompletionState();
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)showCompletionState()});
 })();
 /* 押した位置のずれ防止（Ver.1.19）
    キーボードの表示・画面の回転・ショートカットからの復帰で、iPhone がページ全体を少しずらしたままにすることがあり、
@@ -884,7 +891,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-18-completion1";
+  const APP_VER="2026-11-18-completion2";
   let last=0;
   async function checkVer(){
     const now=Date.now();
