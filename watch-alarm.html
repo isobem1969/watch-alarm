@@ -51,6 +51,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .ft hr{margin:0}
 .copyrow{margin-top:0!important}
 #copyDay{background:var(--copy-bg);color:var(--copy-fg);box-shadow:var(--hl-ring)}
+#completionNotice{position:fixed;z-index:100;top:calc(env(safe-area-inset-top,0px) + 12px);left:16px;right:16px;max-width:688px;margin:auto;padding:16px 20px;border-radius:16px;background:#166534;color:#ffffff;font-weight:700;text-align:center;box-shadow:0 4px 16px #0003;cursor:pointer}
+#completionNotice[hidden]{display:none}
 #fullSyncBtn{background:#d70015;color:#ffffff}
 #applyBtn{background:var(--apply-bg);color:var(--apply-fg);box-shadow:var(--hl-ring)}
 .toast:empty{display:none}
@@ -420,6 +422,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
 </div>
 
 <div class="remind" id="remind" role="alertdialog" aria-modal="true" aria-labelledby="remindTtl" hidden><div class="box"><div class="ttl" id="remindTtl">未反映の変更があります</div><div class="msg" id="remindMsg">前回、時計アプリに反映しないまま閉じました。今すぐ時計アプリに反映しますか？</div><div class="btns"><button class="btn ghost" id="remindLater" type="button">あとで</button><button class="btn" id="remindGo" type="button">反映する</button></div></div></div>
+<div id="completionNotice" role="status" aria-live="polite" hidden></div>
 <script>
 (function(){
   const DAYS=["月","火","水","木","金","土","日"];
@@ -713,7 +716,13 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
   /* データをクリップボードに入れてショートカットを起動する（onSent：起動直前の処理、onFail：失敗の表示） */
   function sendPayload(pl,onSent,onFail){
     const json=JSON.stringify(pl);
-    const url="shortcuts://run-shortcut?name="+encodeURIComponent(pl.version===2?FULL_SYNC_SHORTCUT:SHORTCUT);
+    const requestId=Date.now().toString(36)+Math.random().toString(36).slice(2);
+    const returnBase="webapp://isobem1969.github.io/watch-alarm/watch-alarm.html";
+    const callback=status=>returnBase+"?wa-result="+status+"&wa-request="+requestId;
+    const url="shortcuts://x-callback-url/run-shortcut?name="+encodeURIComponent(pl.version===2?FULL_SYNC_SHORTCUT:SHORTCUT)
+      +"&x-success="+encodeURIComponent(callback("success"))
+      +"&x-cancel="+encodeURIComponent(callback("cancel"))
+      +"&x-error="+encodeURIComponent(callback("error"));
     let ok=false;
     try{
       const ta=document.createElement("textarea");
@@ -723,7 +732,11 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
       ok=document.execCommand("copy");
       document.body.removeChild(ta);
     }catch(err){ok=false}
-    const go=()=>{onSent();location.href=url;};
+    const go=()=>{
+      try{localStorage.setItem("watchAlarm.pendingCompletion",JSON.stringify({id:requestId,at:Date.now(),bulkDelete:pl.bulkStage==="delete"}))}
+      catch(e){onFail("完了確認を準備できなかったため、反映を中止しました。");return}
+      onSent();location.href=url;
+    };
     if(ok){go();return}
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(json).then(go,()=>onFail("クリップボードにコピーできなかったため、反映を中止しました。もう一度押してください。"));
@@ -758,7 +771,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
     const rm=new Map();
     for(const a of cur)rm.set(key(a),{key:key(a),day:a.day,time:a.time});
     if(st.synced)for(const k in st.synced)if(!rm.has(k))rm.set(k,{key:k,day:st.synced[k].day,time:st.synced[k].time});
-    const pl={version:1,alarms:[],removed:[...rm.values()],widget:JSON.stringify({on:cur.filter(a=>a.on).map(a=>({day:a.day,time:a.time}))})};
+    const pl={version:1,bulkStage:"delete",alarms:[],removed:[...rm.values()],widget:JSON.stringify({on:cur.filter(a=>a.on).map(a=>({day:a.day,time:a.time}))})};
     sendPayload(pl,()=>{st.bulk="recreate";save();renderBulk()},bulkFail);
   });
   renderBulk();
@@ -812,6 +825,28 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
     }catch(e){toast("読み込めませんでした。「設定一覧をコピー」で出した文字をそのまま貼り付けてください。")}
   });
   render();
+  let completionTimer;
+  function receiveCompletion(){
+    const params=new URLSearchParams(location.search);
+    if(!params.has("wa-result"))return;
+    let pending;
+    try{pending=JSON.parse(localStorage.getItem("watchAlarm.pendingCompletion")||"null")}catch(e){}
+    const status=params.get("wa-result"),id=params.get("wa-request");
+    params.delete("wa-result");params.delete("wa-request");params.delete("result");params.delete("errorCode");params.delete("errorMessage");
+    history.replaceState(null,"",location.pathname+(params.toString()?"?"+params.toString():"")+location.hash);
+    if(!pending||pending.id!==id||Date.now()-pending.at>86400000)return;
+    localStorage.removeItem("watchAlarm.pendingCompletion");
+    const message=status==="success"?(pending.bulkDelete?"削除処理が終了しました。続けて作り直してください。":"変更完了しました"):
+      status==="cancel"?"反映をキャンセルしました。":"反映中にエラーが発生しました。";
+    const notice=$("completionNotice");notice.textContent=message;notice.hidden=false;
+    notice.style.background=status==="success"?"#166534":"#b42318";
+    clearTimeout(completionTimer);completionTimer=setTimeout(()=>{notice.hidden=true},8000);
+  }
+  $("completionNotice").addEventListener("click",()=>{$("completionNotice").hidden=true});
+  window.addEventListener("hashchange",receiveCompletion);
+  window.addEventListener("pageshow",receiveCompletion);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)receiveCompletion()});
+  receiveCompletion();
 })();
 /* 押した位置のずれ防止（Ver.1.19）
    キーボードの表示・画面の回転・ショートカットからの復帰で、iPhone がページ全体を少しずらしたままにすることがあり、
@@ -849,7 +884,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-17-sync-buttons1";
+  const APP_VER="2026-11-18-completion1";
   let last=0;
   async function checkVer(){
     const now=Date.now();
