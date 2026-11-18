@@ -387,7 +387,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
       <p>Watch AlarmでOFFにした登録は、時計アプリでもOFFとして残します。Watch Alarmの登録が0件の場合は、取得できる時計アプリのアラームをすべて削除します。</p>
       <p>完全同期にはショートカット「WatchAlarm完全同期」を使用します。全件一覧が確認できない場合は、同期を中止します。</p>
       <p>全アラームの一括スヌーズ設定は、これまでどおり2回に分けて実行します。</p>
-      <p class="note">表示版：2026-11-18-clock-notice1<br><span id="completionState"></span></p>
+      <p class="note">表示版：2026-11-18-clock-notice2<br><span id="completionState"></span></p>
       <button class="btn ghost" id="testCompletion" type="button">終了通知の確認（時計設定は変更しません）</button>
     </div>
   </details>
@@ -429,7 +429,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
 (function(){
   const DAYS=["月","火","水","木","金","土","日"];
   const EN=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  const SHORTCUT="時計アプリ";
+  const SHORTCUT="時計アプリ".normalize("NFD");
   const FULL_SYNC_SHORTCUT="WatchAlarm完全同期";
   const KEY="watchAlarm.v1";
   const sample={alarms:[
@@ -894,7 +894,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-18-clock-notice1";
+  const APP_VER="2026-11-18-clock-notice2";
   let last=0;
   async function checkVer(){
     const now=Date.now();
