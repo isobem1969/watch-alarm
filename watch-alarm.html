@@ -382,12 +382,12 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
   <details>
     <summary>時計アプリとの同期について</summary>
     <div class="body">
-      <p>通常はフッターの「時計アプリに反映」を使います。ショートカット「WatchAlarm反映」で、前回からの変更を時計アプリへ送ります。</p>
+      <p>通常はフッターの「時計アプリに反映」を使います。ショートカット「時計アプリ」で、前回からの変更を時計アプリへ送ります。</p>
       <p>下の「時計アプリ完全同期」は、全曜日の登録と時計アプリの全件を照合します。Watch Alarmにないアラームは、時計アプリで手動作成したものも含めて削除します。全件を処理するため時間がかかります。</p>
       <p>Watch AlarmでOFFにした登録は、時計アプリでもOFFとして残します。Watch Alarmの登録が0件の場合は、取得できる時計アプリのアラームをすべて削除します。</p>
       <p>完全同期にはショートカット「WatchAlarm完全同期」を使用します。全件一覧が確認できない場合は、同期を中止します。</p>
       <p>全アラームの一括スヌーズ設定は、これまでどおり2回に分けて実行します。</p>
-      <p class="note">表示版：2026-11-18-completion4<br><span id="completionState"></span></p>
+      <p class="note">表示版：2026-11-18-clock-notice1<br><span id="completionState"></span></p>
       <button class="btn ghost" id="testCompletion" type="button">終了通知の確認（時計設定は変更しません）</button>
     </div>
   </details>
@@ -429,7 +429,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
 (function(){
   const DAYS=["月","火","水","木","金","土","日"];
   const EN=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  const SHORTCUT="WatchAlarm反映";
+  const SHORTCUT="時計アプリ";
   const FULL_SYNC_SHORTCUT="WatchAlarm完全同期";
   const KEY="watchAlarm.v1";
   const sample={alarms:[
@@ -720,7 +720,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
     const requestId=Date.now().toString(36)+Math.random().toString(36).slice(2);
     const returnBase="webapp://isobem1969.github.io/watch-alarm/watch-alarm.html";
     const callback=status=>returnBase+"?wa-result="+status+"&wa-request="+requestId;
-    pl.completionMessage=pl.bulkStage==="delete"?"削除処理が終了しました。続けて作り直してください。":"変更完了しました";
+    pl.completionMessage=pl.bulkStage==="delete"?"削除処理が終了しました。続けて作り直してください。":"修正完了";
     const json=JSON.stringify(pl);
     const url="shortcuts://run-shortcut?name="+encodeURIComponent(pl.version===2?FULL_SYNC_SHORTCUT:SHORTCUT);
     let ok=false;
@@ -894,7 +894,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-18-completion4";
+  const APP_VER="2026-11-18-clock-notice1";
   let last=0;
   async function checkVer(){
     const now=Date.now();
