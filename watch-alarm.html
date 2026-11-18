@@ -51,8 +51,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15
 .ft hr{margin:0}
 .copyrow{margin-top:0!important}
 #copyDay{background:var(--copy-bg);color:var(--copy-fg);box-shadow:var(--hl-ring)}
-#completionNotice{position:fixed;z-index:100;top:calc(env(safe-area-inset-top,0px) + 12px);left:16px;right:16px;max-width:688px;margin:auto;padding:16px 20px;border-radius:16px;background:#166534;color:#ffffff;font-weight:700;text-align:center;box-shadow:0 4px 16px #0003;cursor:pointer}
-#completionNotice[hidden]{display:none}
 #fullSyncBtn{background:#d70015;color:#ffffff}
 #applyBtn{background:var(--apply-bg);color:var(--apply-fg);box-shadow:var(--hl-ring)}
 .toast:empty{display:none}
@@ -387,8 +385,6 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
       <p>Watch AlarmでOFFにした登録は、時計アプリでもOFFとして残します。Watch Alarmの登録が0件の場合は、取得できる時計アプリのアラームをすべて削除します。</p>
       <p>完全同期にはショートカット「WatchAlarm完全同期」を使用します。全件一覧が確認できない場合は、同期を中止します。</p>
       <p>全アラームの一括スヌーズ設定は、これまでどおり2回に分けて実行します。</p>
-      <p class="note">表示版：2026-11-18-clock-notice2<br><span id="completionState"></span></p>
-      <button class="btn ghost" id="testCompletion" type="button">終了通知の確認（時計設定は変更しません）</button>
     </div>
   </details>
   <button class="btn" id="fullSyncBtn" type="button">時計アプリ完全同期</button>
@@ -424,7 +420,6 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
 </div>
 
 <div class="remind" id="remind" role="alertdialog" aria-modal="true" aria-labelledby="remindTtl" hidden><div class="box"><div class="ttl" id="remindTtl">未反映の変更があります</div><div class="msg" id="remindMsg">前回、時計アプリに反映しないまま閉じました。今すぐ時計アプリに反映しますか？</div><div class="btns"><button class="btn ghost" id="remindLater" type="button">あとで</button><button class="btn" id="remindGo" type="button">反映する</button></div></div></div>
-<div id="completionNotice" role="status" aria-live="polite" hidden></div>
 <script>
 (function(){
   const DAYS=["月","火","水","木","金","土","日"];
@@ -717,9 +712,6 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
   }
   /* データをクリップボードに入れてショートカットを起動する（onSent：起動直前の処理、onFail：失敗の表示） */
   function sendPayload(pl,onSent,onFail){
-    const requestId=Date.now().toString(36)+Math.random().toString(36).slice(2);
-    const returnBase="webapp://isobem1969.github.io/watch-alarm/watch-alarm.html";
-    const callback=status=>returnBase+"?wa-result="+status+"&wa-request="+requestId;
     pl.completionMessage=pl.bulkStage==="delete"?"削除処理が終了しました。続けて作り直してください。":"修正完了";
     const json=JSON.stringify(pl);
     const url="shortcuts://run-shortcut?name="+encodeURIComponent(pl.version===2?FULL_SYNC_SHORTCUT:SHORTCUT);
@@ -732,11 +724,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
       ok=document.execCommand("copy");
       document.body.removeChild(ta);
     }catch(err){ok=false}
-    const go=()=>{
-      try{localStorage.removeItem("watchAlarm.pendingCompletion")}
-      catch(e){onFail("完了確認を準備できなかったため、反映を中止しました。");return}
-      onSent();location.href=url;
-    };
+    const go=()=>{onSent();location.href=url;};
     if(ok){go();return}
     if(navigator.clipboard&&navigator.clipboard.writeText){
       navigator.clipboard.writeText(json).then(go,()=>onFail("クリップボードにコピーできなかったため、反映を中止しました。もう一度押してください。"));
@@ -824,39 +812,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
       st.alarms=list;st.removed=[];st.dirty=true;$("importBox").hidden=true;render();toast(`${list.length}件を復元しました。「時計アプリに反映」で時計アプリにも反映されます。`);
     }catch(e){toast("読み込めませんでした。「設定一覧をコピー」で出した文字をそのまま貼り付けてください。")}
   });
-  $("testCompletion").addEventListener("click",()=>{
-    const pl=payload(false);pl.alarms=[];pl.removed=[];pl.version=1;
-    sendPayload(pl,()=>{toast("時計設定を変更せず、終了通知を確認します。")},toast);
-  });
   render();
-  let completionTimer;
-  function receiveCompletion(){
-    const params=new URLSearchParams(location.search);
-    if(!params.has("wa-result"))return;
-    let pending;
-    try{pending=JSON.parse(localStorage.getItem("watchAlarm.pendingCompletion")||"null")}catch(e){}
-    const status=params.get("wa-result"),id=params.get("wa-request");
-    params.delete("wa-result");params.delete("wa-request");params.delete("result");params.delete("errorCode");params.delete("errorMessage");
-    history.replaceState(null,"",location.pathname+(params.toString()?"?"+params.toString():"")+location.hash);
-    if(!pending||pending.id!==id||Date.now()-pending.at>86400000)return;
-    localStorage.removeItem("watchAlarm.pendingCompletion");
-    const message=status==="success"?(pending.bulkDelete?"削除処理が終了しました。続けて作り直してください。":"変更完了しました"):
-      status==="cancel"?"反映をキャンセルしました。":"反映中にエラーが発生しました。";
-    const notice=$("completionNotice");notice.textContent=message;notice.hidden=false;
-    notice.style.background=status==="success"?"#166534":"#b42318";
-    clearTimeout(completionTimer);completionTimer=setTimeout(()=>{notice.hidden=true},8000);
-  }
-  $("completionNotice").addEventListener("click",()=>{$("completionNotice").hidden=true});
-  window.addEventListener("hashchange",receiveCompletion);
-  window.addEventListener("pageshow",receiveCompletion);
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden)receiveCompletion()});
-  receiveCompletion();
-  function showCompletionState(){
-    let pending;try{pending=JSON.parse(localStorage.getItem("watchAlarm.pendingCompletion")||"null")}catch(e){}
-    $("completionState").textContent=pending?"直近の反映：終了通知を待っています。":"完了表示：ショートカット末尾の通知バナーを使用します。";
-  }
-  showCompletionState();
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden)showCompletionState()});
 })();
 /* 押した位置のずれ防止（Ver.1.19）
    キーボードの表示・画面の回転・ショートカットからの復帰で、iPhone がページ全体を少しずらしたままにすることがあり、
@@ -894,7 +850,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-18-clock-notice2";
+  const APP_VER="2026-11-18-clock-notice3";
   let last=0;
   async function checkVer(){
     const now=Date.now();
