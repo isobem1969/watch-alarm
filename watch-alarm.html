@@ -712,7 +712,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
   }
   /* データをクリップボードに入れてショートカットを起動する（onSent：起動直前の処理、onFail：失敗の表示） */
   function sendPayload(pl,onSent,onFail){
-    pl.completionMessage=pl.bulkStage==="delete"?"削除処理が終了しました。続けて作り直してください。":"修正完了";
+    pl.completionMessage=pl.bulkStage==="delete"?"削除処理が終了しました。続けて作り直してください。":"更新完了";
     const json=JSON.stringify(pl);
     const url="shortcuts://run-shortcut?name="+encodeURIComponent(pl.version===2?FULL_SYNC_SHORTCUT:SHORTCUT);
     let ok=false;
@@ -850,7 +850,7 @@ html.rotL .home,html.rotR .home{padding:calc(max(env(safe-area-inset-left,0px),e
    最新版を取りに行き（取ったものは iPhone 側の写しも置き換える）、版が違えば1回だけ読み込み直す。
    ページを変更したら APP_VER も必ず書き換えること。 */
 (()=>{
-  const APP_VER="2026-11-18-clock-notice3";
+  const APP_VER="2026-11-20-updated-notice1";
   let last=0;
   async function checkVer(){
     const now=Date.now();
